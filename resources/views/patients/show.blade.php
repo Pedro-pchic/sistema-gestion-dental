@@ -58,6 +58,14 @@
                 <a href="{{ route('pacientes.citas.index', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Historial de citas</a>
             @endcan
 
+            @can('viewFinancialSummary', $patient)
+                <a href="{{ route('pacientes.resumen-financiero', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Resumen financiero</a>
+            @endcan
+
+            @can('view-dental-finances')
+                <a href="{{ route('facturacion.facturas.create', ['patient_id' => $patient->id]) }}" class="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-50">Crear factura</a>
+            @endcan
+
             @can('viewClinicalHistory', $patient)
                 <a href="{{ route('pacientes.historial-clinico', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Historial clínico</a>
             @endcan

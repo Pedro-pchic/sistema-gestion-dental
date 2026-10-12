@@ -75,4 +75,9 @@ class PatientTreatment extends Model
     {
         return $this->hasMany(PatientTreatmentEvent::class)->latest('id');
     }
+
+    public function dentalInvoiceDetails(): HasMany
+    {
+        return $this->hasMany(DentalInvoiceDetail::class);
+    }
 }

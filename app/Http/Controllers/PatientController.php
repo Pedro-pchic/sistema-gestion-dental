@@ -68,7 +68,7 @@ class PatientController extends Controller
      */
     public function store(StorePatientRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $this->withNotificationConsent($request->validated(), $request);
         $dentistIds = $data['dentist_ids'] ?? [];
         unset($data['dentist_ids']);
 
@@ -123,7 +123,7 @@ class PatientController extends Controller
      */
     public function update(UpdatePatientRequest $request, Patient $patient): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $this->withNotificationConsent($request->validated(), $request, $patient);
         $shouldSyncDentists = $request->user()->can('manage-patient-assignments')
             && array_key_exists('dentist_ids_present', $data);
         $dentistIds = $data['dentist_ids'] ?? [];
@@ -161,5 +161,30 @@ class PatientController extends Controller
         $patient->update(['is_active' => ! $patient->is_active]);
 
         return back()->with('status', 'Estado del paciente actualizado.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function withNotificationConsent(array $data, Request $request, ?Patient $patient = null): array
+    {
+        $wasEnabled = (bool) $patient?->email_reminders_enabled;
+        $isEnabled = array_key_exists('email_reminders_enabled', $data)
+            ? filter_var($data['email_reminders_enabled'], FILTER_VALIDATE_BOOLEAN)
+            : $wasEnabled;
+
+        $data['email_reminders_enabled'] = $isEnabled;
+
+        if ($isEnabled && ! $wasEnabled) {
+            $data['email_reminders_consent_at'] = now();
+            $data['email_reminders_revoked_at'] = null;
+            $data['notification_preferences_updated_by'] = $request->user()->getKey();
+        } elseif (! $isEnabled && $wasEnabled) {
+            $data['email_reminders_revoked_at'] = now();
+            $data['notification_preferences_updated_by'] = $request->user()->getKey();
+        }
+
+        return $data;
     }
 }

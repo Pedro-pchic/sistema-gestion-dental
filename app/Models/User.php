@@ -55,6 +55,16 @@ class User extends Authenticatable
         return $this->hasMany(PatientTreatment::class, 'registered_by');
     }
 
+    public function createdDentalInvoices(): HasMany
+    {
+        return $this->hasMany(DentalInvoice::class, 'created_by');
+    }
+
+    public function recordedDentalPayments(): HasMany
+    {
+        return $this->hasMany(DentalPayment::class, 'recorded_by');
+    }
+
     public function hasRole(string $roleName): bool
     {
         return $this->role?->name === $roleName;

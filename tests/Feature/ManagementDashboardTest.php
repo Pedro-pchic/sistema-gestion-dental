@@ -158,20 +158,18 @@ class ManagementDashboardTest extends TestCase
             ->assertSeeText('Tiempo promedio de entrega');
     }
 
-    public function test_admin_can_view_management_dashboard_but_other_roles_keep_basic_dashboard(): void
+    public function test_administrator_gets_dental_dashboard_and_other_roles_are_forbidden(): void
     {
         $admin = $this->userWithRole(Role::ADMINISTRATOR);
         $this->actingAs($admin)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertViewHas('isManagementDashboard', true);
+            ->assertViewIs('dashboard.dental');
 
         $salesUser = $this->userWithRole(Role::SALES);
         $this->actingAs($salesUser)
             ->get(route('dashboard'))
-            ->assertOk()
-            ->assertViewHas('isManagementDashboard', false)
-            ->assertDontSeeText('Ingresos');
+            ->assertForbidden();
 
         $this->actingAs($salesUser)
             ->get(route('gestion.reportes.index'))

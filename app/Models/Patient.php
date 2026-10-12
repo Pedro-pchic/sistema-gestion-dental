@@ -10,19 +10,41 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
-#[Fillable(['first_name', 'last_name', 'date_of_birth', 'phone', 'address', 'email', 'is_active'])]
+#[Fillable([
+    'first_name',
+    'last_name',
+    'date_of_birth',
+    'phone',
+    'address',
+    'email',
+    'is_active',
+    'email_reminders_enabled',
+    'email_reminders_consent_at',
+    'email_reminders_revoked_at',
+    'sms_reminders_enabled',
+    'sms_reminders_consent_at',
+    'sms_reminders_revoked_at',
+    'notification_preferences_updated_by',
+])]
 class Patient extends Model
 {
     /** @use HasFactory<PatientFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected function casts(): array
     {
         return [
             'date_of_birth' => 'date',
             'is_active' => 'boolean',
+            'email_reminders_enabled' => 'boolean',
+            'email_reminders_consent_at' => 'immutable_datetime',
+            'email_reminders_revoked_at' => 'immutable_datetime',
+            'sms_reminders_enabled' => 'boolean',
+            'sms_reminders_consent_at' => 'immutable_datetime',
+            'sms_reminders_revoked_at' => 'immutable_datetime',
         ];
     }
 
@@ -66,6 +88,11 @@ class Patient extends Model
     public function patientTreatments(): HasMany
     {
         return $this->hasMany(PatientTreatment::class);
+    }
+
+    public function dentalInvoices(): HasMany
+    {
+        return $this->hasMany(DentalInvoice::class);
     }
 
     public function treatmentPlans(): HasMany

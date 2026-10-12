@@ -28,9 +28,10 @@ class StorePatientRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120'],
             'date_of_birth' => ['nullable', 'date', 'before_or_equal:today'],
-            'phone' => ['nullable', 'string', 'max:40'],
+            'phone' => ['nullable', 'string', 'max:40', 'regex:/^(?=(?:\D*\d){7,}$)\+?[0-9\s().-]{7,40}$/'],
             'address' => ['nullable', 'string', 'max:2000'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => [$this->boolean('email_reminders_enabled') ? 'required' : 'nullable', 'email', 'max:255'],
+            'email_reminders_enabled' => ['sometimes', 'boolean'],
         ];
 
         if ($this->user()?->can('manage-patient-assignments')) {
@@ -53,6 +54,9 @@ class StorePatientRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'phone.regex' => 'Ingresa un número de teléfono válido.',
+            'email.required' => 'Ingresa un correo para activar los recordatorios.',
+            'email_reminders_enabled.boolean' => 'La preferencia de recordatorios no es válida.',
             'first_name.required' => 'Los nombres son obligatorios.',
             'first_name.max' => 'Los nombres no pueden exceder 120 caracteres.',
             'last_name.required' => 'Los apellidos son obligatorios.',

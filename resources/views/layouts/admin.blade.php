@@ -46,6 +46,19 @@
                 </div>
             @endcan
 
+            @can('view-dental-finances')
+                <div class="mt-6">
+                    <p class="px-3 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-stone-500">Facturación dental</p>
+                    <div class="mt-2 flex flex-col gap-1">
+                        <x-admin.nav-link :active="request()->routeIs('facturacion.facturas.*')" href="{{ route('facturacion.facturas.index') }}">Facturas</x-admin.nav-link>
+                        <x-admin.nav-link :active="request()->routeIs('facturacion.pagos.*')" href="{{ route('facturacion.pagos.index') }}">Pagos</x-admin.nav-link>
+                        @can('view-dental-reports')
+                            <x-admin.nav-link :active="request()->routeIs('facturacion.reportes.*')" href="{{ route('facturacion.reportes.index') }}">Reportes</x-admin.nav-link>
+                        @endcan
+                    </div>
+                </div>
+            @endcan
+
             @can('manage-users')
                 <div class="mt-6">
                     <p class="px-3 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-stone-500">Administración</p>

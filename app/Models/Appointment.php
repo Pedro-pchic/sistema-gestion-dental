@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AppointmentReminderStatus;
 use App\Enums\AppointmentStatus;
 use Database\Factories\AppointmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -71,8 +72,34 @@ class Appointment extends Model
         return $this->hasMany(AppointmentEvent::class)->latest('id');
     }
 
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(AppointmentReminder::class);
+    }
+
     public function treatmentProcedures(): HasMany
     {
         return $this->hasMany(PatientTreatment::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (Appointment $appointment): void {
+            if (! $appointment->wasChanged(['patient_id', 'starts_at', 'status'])) {
+                return;
+            }
+
+            $appointment->reminders()
+                ->whereIn('status', [
+                    AppointmentReminderStatus::Pending->value,
+                    AppointmentReminderStatus::Queued->value,
+                    AppointmentReminderStatus::Sending->value,
+                    AppointmentReminderStatus::Failed->value,
+                ])
+                ->update([
+                    'status' => AppointmentReminderStatus::Superseded->value,
+                    'updated_at' => now(),
+                ]);
+        });
     }
 }

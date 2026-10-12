@@ -52,6 +52,20 @@
         @enderror
     </div>
 
+    <div class="sm:col-span-2 rounded-lg border border-stone-200 bg-stone-50 p-4">
+        <input type="hidden" name="email_reminders_enabled" value="0">
+        <label for="email_reminders_enabled" class="flex items-start gap-3 text-sm font-medium text-stone-800">
+            <input id="email_reminders_enabled" name="email_reminders_enabled" type="checkbox" value="1"
+                @checked((bool) old('email_reminders_enabled', $patient?->email_reminders_enabled ?? false))
+                class="mt-0.5 rounded border-stone-300 text-brand-600 focus:ring-brand-500">
+            <span>El paciente autorizó recibir recordatorios de citas por correo electrónico.</span>
+        </label>
+        <p class="mt-2 pl-7 text-xs text-stone-600">Se enviarán solo fecha y hora de la cita. SMS está desactivado porque no hay proveedor configurado.</p>
+        @error('email_reminders_enabled')
+            <p class="mt-1 pl-7 text-sm text-red-700">{{ $message }}</p>
+        @enderror
+    </div>
+
     <div class="sm:col-span-2">
         <label for="address" class="block text-sm font-medium">Dirección</label>
         <textarea id="address" name="address" rows="3" maxlength="2000"

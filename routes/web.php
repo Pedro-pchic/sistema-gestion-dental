@@ -4,6 +4,9 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AppointmentTransitionController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DentalFinancialReportController;
+use App\Http\Controllers\DentalInvoiceController;
+use App\Http\Controllers\DentalPaymentController;
 use App\Http\Controllers\PatientAppointmentHistoryController;
 use App\Http\Controllers\PatientClinicalHistoryController;
 use App\Http\Controllers\PatientController;
@@ -31,13 +34,42 @@ if ($isTesting) {
 Route::middleware(['auth', 'active'])->group(function () use ($isTesting): void {
     if (! $isTesting) {
         Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-        Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/dashboard', DashboardController::class)
+            ->middleware('can:view-dental-dashboard')
+            ->name('dashboard');
 
         Route::resource('usuarios', UserController::class)
             ->parameters(['usuarios' => 'user'])
             ->only(['index', 'create', 'store', 'edit', 'update']);
         Route::patch('/usuarios/{user}/estado', [UserController::class, 'toggleStatus'])->name('usuarios.status');
     }
+
+    Route::middleware('can:view-dental-finances')
+        ->prefix('facturacion')
+        ->name('facturacion.')
+        ->group(function (): void {
+            Route::get('/facturas', [DentalInvoiceController::class, 'index'])->name('facturas.index');
+            Route::get('/facturas/crear', [DentalInvoiceController::class, 'create'])->name('facturas.create');
+            Route::post('/facturas', [DentalInvoiceController::class, 'store'])->name('facturas.store');
+            Route::get('/facturas/{dentalInvoice}', [DentalInvoiceController::class, 'show'])->name('facturas.show');
+            Route::post('/facturas/{dentalInvoice}/emitir', [DentalInvoiceController::class, 'issue'])->name('facturas.issue');
+            Route::post('/facturas/{dentalInvoice}/anular', [DentalInvoiceController::class, 'cancel'])->name('facturas.cancel');
+            Route::get('/facturas/{dentalInvoice}/comprobante', [DentalInvoiceController::class, 'document'])->name('facturas.document');
+
+            Route::get('/pagos', [DentalPaymentController::class, 'index'])->name('pagos.index');
+            Route::get('/pagos/{dentalPayment}', [DentalPaymentController::class, 'show'])->name('pagos.show');
+            Route::get('/pagos/{dentalPayment}/recibo', [DentalPaymentController::class, 'receipt'])->name('pagos.receipt');
+            Route::post('/facturas/{dentalInvoice}/pagos', [DentalPaymentController::class, 'store'])->name('pagos.store');
+            Route::post('/pagos/{dentalPayment}/anular', [DentalPaymentController::class, 'cancel'])->name('pagos.cancel');
+
+            Route::get('/reportes', DentalFinancialReportController::class)
+                ->middleware('can:view-dental-reports')
+                ->name('reportes.index');
+        });
+
+    Route::get('/pacientes/{patient}/resumen-financiero', [DentalInvoiceController::class, 'patientSummary'])
+        ->can('viewFinancialSummary', 'patient')
+        ->name('pacientes.resumen-financiero');
 
     Route::resource('pacientes', PatientController::class)
         ->parameters(['pacientes' => 'patient'])

@@ -52,6 +52,19 @@ class PatientPolicy
         return $this->isAssignedActiveDentist($user, $patient);
     }
 
+    public function viewFinancialSummary(User $user, Patient $patient): bool
+    {
+        if (! $user->is_active) {
+            return false;
+        }
+
+        if ($user->hasRole(Role::ADMINISTRATOR) || $user->hasRole(Role::RECEPTIONIST)) {
+            return true;
+        }
+
+        return $this->isAssignedActiveDentist($user, $patient);
+    }
+
     public function createClinicalRecord(User $user, Patient $patient): bool
     {
         return $this->isAssignedActiveDentist($user, $patient);

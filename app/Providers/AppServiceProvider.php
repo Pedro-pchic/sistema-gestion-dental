@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Contracts\SmsSender;
 use App\Models\Appointment;
+use App\Models\DentalInvoice;
+use App\Models\DentalPayment;
 use App\Models\Patient;
 use App\Models\PatientTreatment;
 use App\Models\Role;
@@ -10,11 +13,14 @@ use App\Models\Treatment;
 use App\Models\TreatmentPlan;
 use App\Models\User;
 use App\Policies\AppointmentPolicy;
+use App\Policies\DentalInvoicePolicy;
+use App\Policies\DentalPaymentPolicy;
 use App\Policies\PatientPolicy;
 use App\Policies\PatientTreatmentPolicy;
 use App\Policies\TreatmentPlanPolicy;
 use App\Policies\TreatmentPolicy;
 use App\Services\CloudinaryProductImageStorage;
+use App\Services\DisabledSmsSender;
 use App\Services\ProductImageStorage;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -31,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(ProductImageStorage::class, CloudinaryProductImageStorage::class);
+        $this->app->bind(SmsSender::class, DisabledSmsSender::class);
     }
 
     /**
@@ -44,6 +51,8 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Patient::class, PatientPolicy::class);
         Gate::policy(Appointment::class, AppointmentPolicy::class);
+        Gate::policy(DentalInvoice::class, DentalInvoicePolicy::class);
+        Gate::policy(DentalPayment::class, DentalPaymentPolicy::class);
         Gate::policy(Treatment::class, TreatmentPolicy::class);
         Gate::policy(PatientTreatment::class, PatientTreatmentPolicy::class);
         Gate::policy(TreatmentPlan::class, TreatmentPlanPolicy::class);
@@ -56,6 +65,12 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('view-management-dashboard', fn (User $user): bool => in_array(
             $user->role?->name,
             [Role::ADMINISTRATOR, Role::MANAGER],
+            true,
+        ));
+
+        Gate::define('view-dental-dashboard', fn (User $user): bool => $user->is_active && in_array(
+            $user->role?->name,
+            [Role::ADMINISTRATOR, Role::DENTIST, Role::RECEPTIONIST],
             true,
         ));
 
@@ -105,6 +120,15 @@ class AppServiceProvider extends ServiceProvider
             [Role::ADMINISTRATOR, Role::FINANCE],
             true,
         ));
+
+        Gate::define('view-dental-finances', fn (User $user): bool => $user->is_active && in_array(
+            $user->role?->name,
+            [Role::ADMINISTRATOR, Role::RECEPTIONIST],
+            true,
+        ));
+
+        Gate::define('view-dental-reports', fn (User $user): bool => $user->is_active
+            && $user->hasRole(Role::ADMINISTRATOR));
 
         Gate::define('view-invoices', fn (User $user): bool => in_array(
             $user->role?->name,
