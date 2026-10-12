@@ -17,6 +17,7 @@
                         <th class="px-4 py-3">Nombre</th>
                         <th class="px-4 py-3">Correo</th>
                         <th class="px-4 py-3">Rol</th>
+                        <th class="px-4 py-3">Acceso clínico</th>
                         <th class="px-4 py-3">Estado</th>
                         <th class="px-4 py-3 text-right">Acciones</th>
                     </tr>
@@ -27,6 +28,7 @@
                             <td class="px-4 py-3 font-medium">{{ $user->name }}</td>
                             <td class="px-4 py-3 text-stone-600">{{ $user->email }}</td>
                             <td class="px-4 py-3">{{ $user->role?->name ?? 'Sin rol' }}</td>
+                            <td class="px-4 py-3">{{ $user->can_view_clinical_records ? 'Autorizado' : 'Sin autorización' }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ring-current/10 {{ $user->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700' }}">
                                     {{ $user->is_active ? 'Activo' : 'Inactivo' }}
@@ -47,7 +49,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-stone-500">No hay usuarios registrados.</td>
+                            <td colspan="6" class="px-4 py-10 text-center text-stone-500">No hay usuarios registrados.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -70,4 +70,9 @@ class Appointment extends Model
     {
         return $this->hasMany(AppointmentEvent::class)->latest('id');
     }
+
+    public function treatmentProcedures(): HasMany
+    {
+        return $this->hasMany(PatientTreatment::class);
+    }
 }

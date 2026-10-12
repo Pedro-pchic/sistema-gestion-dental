@@ -37,4 +37,14 @@ class Dentist extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+
+    public function treatmentProcedures(): HasMany
+    {
+        return $this->hasMany(PatientTreatment::class);
+    }
+
+    public function treatmentPlans(): HasMany
+    {
+        return $this->hasMany(TreatmentPlan::class);
+    }
 }

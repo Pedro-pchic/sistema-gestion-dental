@@ -53,6 +53,27 @@ class PatientPolicyTest extends TestCase
         $this->assertFalse($policy->view($user, $assignedPatient));
     }
 
+    public function test_clinical_history_requires_assigned_dentist_or_explicit_administrator_grant(): void
+    {
+        $patient = Patient::factory()->create();
+        $dentistUser = $this->userWithRole(Role::DENTIST);
+        $dentist = Dentist::factory()->for($dentistUser, 'user')->create();
+        $patient->dentists()->attach($dentist);
+        $administrator = $this->userWithRole(Role::ADMINISTRATOR);
+        $receptionist = $this->userWithRole(Role::RECEPTIONIST);
+        $policy = new PatientPolicy;
+
+        $this->assertTrue($policy->viewClinicalHistory($dentistUser, $patient));
+        $this->assertFalse($policy->viewClinicalHistory($receptionist, $patient));
+        $this->assertFalse($policy->viewClinicalHistory($administrator, $patient));
+
+        $administrator->update(['can_view_clinical_records' => true]);
+        $this->assertTrue($policy->viewClinicalHistory($administrator, $patient));
+
+        $dentist->update(['is_active' => false]);
+        $this->assertFalse($policy->viewClinicalHistory($dentistUser, $patient));
+    }
+
     #[DataProvider('rolesAllowedToManagePatients')]
     public function test_only_administrators_and_receptionists_can_manage_patient_records(
         string $roleName,

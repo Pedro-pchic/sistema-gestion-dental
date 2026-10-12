@@ -8,6 +8,7 @@ use App\Models\Dentist;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -17,6 +18,8 @@ class UserController extends Controller
      */
     public function index(): View
     {
+        Gate::authorize('manage-users');
+
         $users = User::with('role')
             ->orderBy('name')
             ->paginate(15);
@@ -29,6 +32,8 @@ class UserController extends Controller
      */
     public function create(): View
     {
+        Gate::authorize('manage-users');
+
         $roles = Role::orderBy('name')->get();
 
         return view('users.create', compact('roles'));
@@ -41,6 +46,10 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data['is_active'] = $data['is_active'] ?? true;
+        $data['can_view_clinical_records'] = $this->canGrantClinicalAccess(
+            $data['role_id'],
+            $data['can_view_clinical_records'] ?? false,
+        );
 
         $user = User::create($data);
         $this->syncDentistProfile($user);
@@ -53,6 +62,8 @@ class UserController extends Controller
      */
     public function show(User $user): View
     {
+        Gate::authorize('manage-users');
+
         return view('users.show', compact('user'));
     }
 
@@ -61,6 +72,8 @@ class UserController extends Controller
      */
     public function edit(User $user): View
     {
+        Gate::authorize('manage-users');
+
         $roles = Role::orderBy('name')->get();
 
         return view('users.edit', compact('roles', 'user'));
@@ -72,6 +85,10 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $data = $request->validated();
+        $data['can_view_clinical_records'] = $this->canGrantClinicalAccess(
+            $data['role_id'],
+            $data['can_view_clinical_records'] ?? false,
+        );
 
         if (blank($data['password'] ?? null)) {
             unset($data['password']);
@@ -88,11 +105,15 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
+        Gate::authorize('manage-users');
+
         abort(405);
     }
 
     public function toggleStatus(User $user): RedirectResponse
     {
+        Gate::authorize('manage-users');
+
         $user->update(['is_active' => ! $user->is_active]);
         $this->syncDentistProfile($user);
 
@@ -116,7 +137,11 @@ class UserController extends Controller
             return;
         }
 
-        if ($dentist->appointments()->exists()) {
+        if (
+            $dentist->appointments()->exists()
+            || $dentist->treatmentProcedures()->exists()
+            || $dentist->treatmentPlans()->exists()
+        ) {
             $dentist->patients()->detach();
             $dentist->update(['is_active' => false]);
 
@@ -124,5 +149,11 @@ class UserController extends Controller
         }
 
         $dentist->delete();
+    }
+
+    private function canGrantClinicalAccess(int|string $roleId, bool|int|string $requested): bool
+    {
+        return (bool) $requested
+            && Role::query()->whereKey($roleId)->value('name') === Role::ADMINISTRATOR;
     }
 }

@@ -33,6 +33,18 @@
         </label>
     </div>
 
+    <div class="sm:col-span-2">
+        <input type="hidden" name="can_view_clinical_records" value="0">
+        <label class="flex items-start gap-2 text-sm font-medium">
+            <input name="can_view_clinical_records" type="checkbox" value="1" @checked((bool) old('can_view_clinical_records', $user->can_view_clinical_records ?? false))
+                class="mt-0.5 rounded border-stone-300 text-brand-600 focus:ring-brand-500">
+            <span>
+                Autorizar consulta de expedientes clínicos a esta cuenta
+                <span class="mt-1 block font-normal text-stone-500">Solo aplica cuando el rol asignado es Administrador.</span>
+            </span>
+        </label>
+    </div>
+
     <div>
         <label for="password" class="block text-sm font-medium">Contraseña</label>
         <input id="password" name="password" type="password" @required(! isset($user)) autocomplete="new-password"

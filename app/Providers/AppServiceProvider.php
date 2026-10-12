@@ -4,10 +4,16 @@ namespace App\Providers;
 
 use App\Models\Appointment;
 use App\Models\Patient;
+use App\Models\PatientTreatment;
 use App\Models\Role;
+use App\Models\Treatment;
+use App\Models\TreatmentPlan;
 use App\Models\User;
 use App\Policies\AppointmentPolicy;
 use App\Policies\PatientPolicy;
+use App\Policies\PatientTreatmentPolicy;
+use App\Policies\TreatmentPlanPolicy;
+use App\Policies\TreatmentPolicy;
 use App\Services\CloudinaryProductImageStorage;
 use App\Services\ProductImageStorage;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -38,6 +44,9 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Patient::class, PatientPolicy::class);
         Gate::policy(Appointment::class, AppointmentPolicy::class);
+        Gate::policy(Treatment::class, TreatmentPolicy::class);
+        Gate::policy(PatientTreatment::class, PatientTreatmentPolicy::class);
+        Gate::policy(TreatmentPlan::class, TreatmentPlanPolicy::class);
 
         Gate::define('manage-patient-assignments', fn (User $user): bool => $user->can(
             'assignDentists',

@@ -5,7 +5,11 @@ use App\Http\Controllers\AppointmentTransitionController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PatientAppointmentHistoryController;
+use App\Http\Controllers\PatientClinicalHistoryController;
 use App\Http\Controllers\PatientController;
+use App\Http\Controllers\PatientTreatmentController;
+use App\Http\Controllers\TreatmentController;
+use App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +47,41 @@ Route::middleware(['auth', 'active'])->group(function () use ($isTesting): void 
 
     Route::get('/pacientes/{patient}/citas', [PatientAppointmentHistoryController::class, 'index'])
         ->name('pacientes.citas.index');
+    Route::get('/pacientes/{patient}/historial-clinico', [PatientClinicalHistoryController::class, 'show'])
+        ->name('pacientes.historial-clinico');
+
+    Route::get('/pacientes/{patient}/tratamientos/crear', [PatientTreatmentController::class, 'create'])
+        ->name('pacientes.tratamientos.create');
+    Route::post('/pacientes/{patient}/tratamientos', [PatientTreatmentController::class, 'store'])
+        ->name('pacientes.tratamientos.store');
+    Route::get('/pacientes/{patient}/tratamientos/{patientTreatment}/editar', [PatientTreatmentController::class, 'edit'])
+        ->scopeBindings()
+        ->name('pacientes.tratamientos.edit');
+    Route::put('/pacientes/{patient}/tratamientos/{patientTreatment}', [PatientTreatmentController::class, 'update'])
+        ->scopeBindings()
+        ->name('pacientes.tratamientos.update');
+
+    Route::get('/pacientes/{patient}/planes', [TreatmentPlanController::class, 'index'])
+        ->name('pacientes.planes.index');
+    Route::get('/pacientes/{patient}/planes/crear', [TreatmentPlanController::class, 'create'])
+        ->name('pacientes.planes.create');
+    Route::post('/pacientes/{patient}/planes', [TreatmentPlanController::class, 'store'])
+        ->name('pacientes.planes.store');
+    Route::get('/pacientes/{patient}/planes/{treatmentPlan}', [TreatmentPlanController::class, 'show'])
+        ->scopeBindings()
+        ->name('pacientes.planes.show');
+    Route::patch('/pacientes/{patient}/planes/{treatmentPlan}/estado', [TreatmentPlanController::class, 'update'])
+        ->scopeBindings()
+        ->name('pacientes.planes.update');
+    Route::patch('/pacientes/{patient}/planes/{treatmentPlan}/partidas/{treatmentPlanItem}', [TreatmentPlanController::class, 'updateItem'])
+        ->scopeBindings()
+        ->name('pacientes.planes.items.update');
+
+    Route::resource('tratamientos', TreatmentController::class)
+        ->parameters(['tratamientos' => 'treatment'])
+        ->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+    Route::patch('/tratamientos/{treatment}/estado', [TreatmentController::class, 'toggleStatus'])
+        ->name('tratamientos.status');
 
     Route::resource('citas', AppointmentController::class)
         ->parameters(['citas' => 'appointment'])

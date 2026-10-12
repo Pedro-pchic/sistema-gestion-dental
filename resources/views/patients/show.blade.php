@@ -58,6 +58,15 @@
                 <a href="{{ route('pacientes.citas.index', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Historial de citas</a>
             @endcan
 
+            @can('viewClinicalHistory', $patient)
+                <a href="{{ route('pacientes.historial-clinico', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Historial clínico</a>
+            @endcan
+
+            @can('createClinicalRecord', $patient)
+                <a href="{{ route('pacientes.tratamientos.create', $patient) }}" class="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">Registrar procedimiento</a>
+                <a href="{{ route('pacientes.planes.create', $patient) }}" class="rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold hover:bg-stone-50">Crear plan</a>
+            @endcan
+
             @can('update', $patient)
                 <form method="POST" action="{{ route('pacientes.status', $patient) }}">
                     @csrf

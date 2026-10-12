@@ -12,7 +12,7 @@ class StoreUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('manage-users') ?? false;
     }
 
     /**
@@ -28,6 +28,7 @@ class StoreUserRequest extends FormRequest
             'role_id' => ['required', 'integer', 'exists:roles,id'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'is_active' => ['sometimes', 'boolean'],
+            'can_view_clinical_records' => ['sometimes', 'boolean'],
         ];
     }
 }

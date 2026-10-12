@@ -13,7 +13,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('manage-users') ?? false;
     }
 
     /**
@@ -34,6 +34,7 @@ class UpdateUserRequest extends FormRequest
             'role_id' => ['required', 'integer', 'exists:roles,id'],
             'password' => ['nullable', 'confirmed', Password::min(8)],
             'is_active' => ['required', 'boolean'],
+            'can_view_clinical_records' => ['sometimes', 'boolean'],
         ];
     }
 }

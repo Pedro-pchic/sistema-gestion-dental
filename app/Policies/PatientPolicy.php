@@ -39,6 +39,24 @@ class PatientPolicy
             ->exists();
     }
 
+    public function viewClinicalHistory(User $user, Patient $patient): bool
+    {
+        if (! $user->is_active) {
+            return false;
+        }
+
+        if ($user->hasRole(Role::ADMINISTRATOR)) {
+            return (bool) $user->can_view_clinical_records;
+        }
+
+        return $this->isAssignedActiveDentist($user, $patient);
+    }
+
+    public function createClinicalRecord(User $user, Patient $patient): bool
+    {
+        return $this->isAssignedActiveDentist($user, $patient);
+    }
+
     /**
      * Determine whether the user can create models.
      */
@@ -67,5 +85,18 @@ class PatientPolicy
     public function assignDentists(User $user): bool
     {
         return $user->hasRole(Role::ADMINISTRATOR);
+    }
+
+    private function isAssignedActiveDentist(User $user, Patient $patient): bool
+    {
+        if (! $user->is_active || ! $user->hasRole(Role::DENTIST)) {
+            return false;
+        }
+
+        $dentistId = $user->dentist()
+            ->where('is_active', true)
+            ->value('id');
+
+        return $dentistId !== null && $patient->dentists()->whereKey($dentistId)->exists();
     }
 }

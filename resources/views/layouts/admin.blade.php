@@ -38,6 +38,9 @@
                         <x-admin.nav-link :active="request()->routeIs('pacientes.*')" href="{{ route('pacientes.index') }}">Pacientes</x-admin.nav-link>
                         @can('viewAny', \App\Models\Appointment::class)
                             <x-admin.nav-link :active="request()->routeIs('citas.*')" href="{{ route('citas.index') }}">Citas</x-admin.nav-link>
+                        @can('viewAny', \App\Models\Treatment::class)
+                            <x-admin.nav-link :active="request()->routeIs('tratamientos.*')" href="{{ route('tratamientos.index') }}">Tratamientos</x-admin.nav-link>
+                        @endcan
                         @endcan
                     </div>
                 </div>
@@ -255,5 +258,6 @@
             @yield('content')
         </main>
     </div>
+    @stack('scripts')
 </body>
 </html>
