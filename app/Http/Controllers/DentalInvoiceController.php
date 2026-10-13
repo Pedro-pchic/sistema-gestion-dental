@@ -6,6 +6,7 @@ use App\Actions\CancelDentalInvoice;
 use App\Actions\CreateDentalInvoiceDraft;
 use App\Actions\IssueDentalInvoice;
 use App\Enums\DentalInvoiceStatus;
+use App\Enums\DentalPaymentStatus;
 use App\Http\Requests\CancelDentalInvoiceRequest;
 use App\Http\Requests\StoreDentalInvoiceRequest;
 use App\Models\DentalInvoice;
@@ -18,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class DentalInvoiceController extends Controller
@@ -29,19 +31,37 @@ class DentalInvoiceController extends Controller
         $filters = $request->validate([
             'status' => ['nullable', 'string', 'in:draft,issued,partially_paid,paid,cancelled'],
             'search' => ['nullable', 'string', 'max:100'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d'],
+            'sort' => ['nullable', 'in:newest,oldest,number,total,balance'],
+            'balance' => ['nullable', 'in:pending'],
         ]);
+        if (isset($filters['from'], $filters['to']) && $filters['from'] > $filters['to']) {
+            throw ValidationException::withMessages(['to' => 'La fecha final debe ser igual o posterior a la inicial.']);
+        }
         $search = trim($filters['search'] ?? '');
 
         $invoices = DentalInvoice::query()
             ->with('patient:id,first_name,last_name,record_number')
+            ->withSum(['payments as paid_amount' => fn (Builder $query): Builder => $query->where('status', DentalPaymentStatus::Registered->value)], 'amount')
             ->when($filters['status'] ?? null, fn (Builder $query, string $status): Builder => $query->where('status', $status))
+            ->when($filters['from'] ?? null, fn (Builder $query, string $from): Builder => $query->whereDate('issue_date', '>=', $from))
+            ->when($filters['to'] ?? null, fn (Builder $query, string $to): Builder => $query->whereDate('issue_date', '<=', $to))
+            ->when(($filters['balance'] ?? null) === 'pending', fn (Builder $query): Builder => $query
+                ->whereIn('status', [DentalInvoiceStatus::Issued->value, DentalInvoiceStatus::PartiallyPaid->value])
+                ->where('balance_due', '>', 0))
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $query) use ($search): void {
                     $query->where('number', 'like', '%'.$search.'%')
                         ->orWhereHas('patient', fn (Builder $patientQuery): Builder => $patientQuery->search($search));
                 });
             })
-            ->orderByDesc('created_at')
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn (Builder $query): Builder => $query->orderByDesc('created_at'))
+            ->when(($filters['sort'] ?? '') === 'oldest', fn (Builder $query): Builder => $query->orderBy('created_at'))
+            ->when(($filters['sort'] ?? '') === 'number', fn (Builder $query): Builder => $query->orderBy('number'))
+            ->when(($filters['sort'] ?? '') === 'total', fn (Builder $query): Builder => $query->orderByDesc('total'))
+            ->when(($filters['sort'] ?? '') === 'balance', fn (Builder $query): Builder => $query->orderByDesc('balance_due'))
+            ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
 

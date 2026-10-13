@@ -80,6 +80,10 @@ class DentalDashboardTest extends TestCase
             'payment_date' => '2026-10-11',
             'status' => DentalPaymentStatus::Registered,
         ]);
+        DentalInvoice::factory()->issued()->for($patient)->for($administrator, 'creator')->create([
+            'issue_date' => '2026-10-11',
+            'balance_due' => '40.00',
+        ]);
 
         $response = $this->actingAs($administrator)
             ->get(route('dashboard', ['from' => '2026-10-12', 'to' => '2026-10-12']))
@@ -108,6 +112,7 @@ class DentalDashboardTest extends TestCase
 
     public function test_receptionist_sees_pending_collections_without_revenue_totals(): void
     {
+        $this->travelTo(CarbonImmutable::parse('2026-10-12 10:00:00', 'America/Guatemala'));
         $receptionist = $this->userWithRole(Role::RECEPTIONIST);
         $patient = Patient::factory()->create(['first_name' => 'Paciente', 'last_name' => 'Cobro']);
         $invoice = DentalInvoice::factory()->issued()->for($patient)->create(['balance_due' => '50.00']);

@@ -17,7 +17,7 @@
                             <td class="px-5 py-4">{{ $payment->invoice->patient->first_name }} {{ $payment->invoice->patient->last_name }}</td>
                             <td class="px-5 py-4">{{ $payment->payment_date->format('d/m/Y') }}</td>
                             <td class="px-5 py-4">{{ $payment->method->label() }}</td>
-                            <td class="px-5 py-4">{{ $payment->status->label() }}</td>
+                            <td class="px-5 py-4"><span class="ui-badge" data-status="{{ $payment->status->value }}">{{ $payment->status->label() }}</span></td>
                             <td class="px-5 py-4 text-right tabular-nums">Q {{ number_format((float) $payment->amount, 2) }}</td>
                             <td class="px-5 py-4 text-right"><a href="{{ route('facturacion.pagos.show', $payment) }}" class="font-semibold text-brand-700 hover:text-brand-500">Ver</a></td>
                         </tr>

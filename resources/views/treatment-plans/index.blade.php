@@ -14,7 +14,7 @@
 @section('content')
     <div class="ui-table-wrap">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[48rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-600"><tr><th class="px-4 py-3">Plan</th><th class="px-4 py-3">Odontólogo</th><th class="px-4 py-3">Procedimientos</th><th class="px-4 py-3">Estimado</th><th class="px-4 py-3">Estado</th><th class="px-4 py-3 text-right">Acción</th></tr></thead>
                 <tbody class="divide-y divide-stone-100">
                     @forelse ($plans as $plan)

@@ -20,8 +20,8 @@ class DentalFinancialReportController extends Controller
         Gate::authorize('view-dental-reports');
 
         $filters = $request->validate([
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d'],
         ]);
         $from = $filters['from'] ?? today()->startOfMonth()->toDateString();
         $to = $filters['to'] ?? today()->toDateString();
@@ -54,6 +54,11 @@ class DentalFinancialReportController extends Controller
             ->where('issue_date', '>=', $from)
             ->where('issue_date', '<', $toExclusive);
         $pendingCents = $this->sumCents(clone $pendingInvoices, 'balance_due');
+        $cancelledInvoices = DentalInvoice::query()
+            ->where('status', DentalInvoiceStatus::Cancelled->value)
+            ->whereDate('cancelled_at', '>=', $from)
+            ->whereDate('cancelled_at', '<=', $to)
+            ->count();
 
         $pendingByPatient = (clone $pendingInvoices)
             ->select('patient_id')
@@ -81,6 +86,7 @@ class DentalFinancialReportController extends Controller
             'issuedInvoiceCents',
             'receivedCents',
             'pendingCents',
+            'cancelledInvoices',
             'pendingByPatient',
             'revenueByDay',
         ));

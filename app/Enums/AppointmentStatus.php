@@ -28,10 +28,10 @@ enum AppointmentStatus: string
         return match ($this) {
             self::Scheduled => 'bg-sky-100 text-sky-800 ring-sky-700/10',
             self::Confirmed => 'bg-brand-100 text-brand-800 ring-brand-700/10',
-            self::InTreatment => 'bg-amber-100 text-amber-900 ring-amber-700/10',
+            self::InTreatment => 'bg-violet-100 text-violet-900 ring-violet-700/10',
             self::Completed => 'bg-emerald-100 text-emerald-800 ring-emerald-700/10',
-            self::Cancelled => 'bg-stone-100 text-stone-700 ring-stone-700/10',
-            self::NoShow => 'bg-rose-100 text-rose-800 ring-rose-700/10',
+            self::Cancelled => 'bg-rose-100 text-rose-800 ring-rose-700/10',
+            self::NoShow => 'bg-stone-100 text-stone-700 ring-stone-700/10',
         };
     }
 

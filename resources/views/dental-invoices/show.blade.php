@@ -28,7 +28,7 @@
             <div><dt class="text-sm font-medium text-stone-500">Paciente</dt><dd class="mt-1 font-semibold">{{ $invoice->patient->first_name }} {{ $invoice->patient->last_name }}</dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Código de ficha</dt><dd class="mt-1">{{ $invoice->patient->record_number }}</dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Fecha de emisión</dt><dd class="mt-1">{{ $invoice->issue_date?->format('d/m/Y') ?? 'Sin emitir' }}</dd></div>
-            <div><dt class="text-sm font-medium text-stone-500">Estado</dt><dd class="mt-1 font-semibold">{{ $invoice->status->label() }}</dd></div>
+            <div><dt class="text-sm font-medium text-stone-500">Estado</dt><dd class="mt-1"><span class="ui-badge" data-status="{{ $invoice->status->value }}">{{ $invoice->status->label() }}</span></dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Creada por</dt><dd class="mt-1">{{ $invoice->creator->name }}</dd></div>
             @if ($invoice->issuer)
                 <div><dt class="text-sm font-medium text-stone-500">Emitida por</dt><dd class="mt-1">{{ $invoice->issuer->name }}</dd></div>
@@ -41,7 +41,7 @@
 
     <section class="mt-6 ui-card overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[48rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500"><tr><th class="px-5 py-3">Procedimiento realizado</th><th class="px-5 py-3 text-right">Cantidad</th><th class="px-5 py-3 text-right">Precio unitario</th><th class="px-5 py-3 text-right">Subtotal</th></tr></thead>
                 <tbody class="divide-y divide-stone-100">
                     @foreach ($invoice->details as $detail)
@@ -66,7 +66,7 @@
                 <input type="hidden" name="idempotency_key" value="{{ $paymentRequestKey }}">
                 <div class="sm:col-span-2 lg:col-span-3"><h2 class="text-lg font-semibold">Registrar pago</h2><p class="mt-1 text-sm text-stone-600">Saldo disponible: Q {{ number_format((float) $invoice->balance_due, 2) }}</p></div>
                 <label class="flex flex-col gap-1 text-sm font-medium">Monto
-                    <input name="amount" type="number" min="0.01" max="{{ $invoice->balance_due }}" step="0.01" value="{{ old('amount') }}" required class="rounded-md border border-stone-300 px-3 py-2 font-normal">
+                    <input name="amount" type="number" min="0.01" max="{{ $invoice->balance_due }}" step="0.01" value="{{ old('amount') }}" required @error('amount') aria-invalid="true" aria-describedby="payment-amount-error" @enderror class="rounded-md border border-stone-300 px-3 py-2 font-normal">
                 </label>
                 <label class="flex flex-col gap-1 text-sm font-medium">Método
                     <select name="method" required class="rounded-md border border-stone-300 px-3 py-2 font-normal">
@@ -84,7 +84,7 @@
                 <label class="flex flex-col gap-1 text-sm font-medium sm:col-span-2">Notas administrativas
                     <input name="notes" maxlength="2000" value="{{ old('notes') }}" class="rounded-md border border-stone-300 px-3 py-2 font-normal">
                 </label>
-                <div class="sm:col-span-2 lg:col-span-3">@error('amount')<p class="text-sm text-red-700">{{ $message }}</p>@enderror @error('invoice')<p class="text-sm text-red-700">{{ $message }}</p>@enderror</div>
+                <div class="sm:col-span-2 lg:col-span-3">@error('amount')<p id="payment-amount-error" class="text-sm text-red-700">{{ $message }}</p>@enderror @error('invoice')<p class="text-sm text-red-700">{{ $message }}</p>@enderror</div>
                 <button type="submit" class="self-start ui-button ui-button-primary">Guardar pago</button>
             </form>
         @endif
@@ -110,7 +110,7 @@
                     <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
                         <a href="{{ route('facturacion.pagos.show', $payment) }}" class="font-semibold text-brand-700">{{ $payment->number }}</a>
                         <span>{{ $payment->payment_date->format('d/m/Y') }} · {{ $payment->method->label() }}</span>
-                        <span>{{ $payment->status->label() }}</span>
+                        <span class="ui-badge" data-status="{{ $payment->status->value }}">{{ $payment->status->label() }}</span>
                         <span class="tabular-nums">Q {{ number_format((float) $payment->amount, 2) }}</span>
                     </li>
                 @endforeach

@@ -15,12 +15,14 @@
         <button type="submit" class="ui-button ui-button-secondary">Actualizar</button>
     </form>
 
-    <section class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <section class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <article class="ui-card p-5"><p class="text-sm text-stone-500">Facturas emitidas</p><p class="mt-2 text-2xl font-bold">{{ $issuedInvoices->count() }}</p><p class="mt-1 text-sm text-stone-600">Q {{ number_format($issuedInvoiceCents / 100, 2) }} en el período</p></article>
         <article class="ui-card p-5"><p class="text-sm text-stone-500">Pagos registrados</p><p class="mt-2 text-2xl font-bold">{{ $payments->count() }}</p><p class="mt-1 text-sm text-stone-600">Q {{ number_format($receivedCents / 100, 2) }} recibidos</p></article>
         <article class="ui-card p-5"><p class="text-sm text-stone-500">Facturas pendientes</p><p class="mt-2 text-2xl font-bold">{{ $pendingInvoices->count() }}</p><p class="mt-1 text-sm text-stone-600">Q {{ number_format($pendingCents / 100, 2) }} de saldo</p></article>
+        <article class="ui-card p-5"><p class="text-sm text-stone-500">Facturas anuladas</p><p class="mt-2 text-2xl font-bold">{{ $cancelledInvoices }}</p><p class="mt-1 text-sm text-stone-600">Anuladas durante el período; excluidas de lo facturado</p></article>
         <article class="ui-card p-5"><p class="text-sm text-stone-500">Período</p><p class="mt-2 text-lg font-bold">{{ \Illuminate\Support\Carbon::parse($from)->format('d/m/Y') }}</p><p class="mt-1 text-sm text-stone-600">al {{ \Illuminate\Support\Carbon::parse($to)->format('d/m/Y') }}</p></article>
     </section>
+    <p class="mt-3 text-sm text-stone-600">Facturado: facturas vigentes emitidas en el período. Cobrado: pagos vigentes recibidos en el período. Pendiente: saldo actual de facturas vigentes emitidas en el período.</p>
 
     <section class="mt-6 grid gap-6 xl:grid-cols-2">
         <div class="ui-card overflow-hidden">

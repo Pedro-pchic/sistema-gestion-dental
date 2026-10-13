@@ -40,7 +40,7 @@
     <section class="ui-card">
         <div class="border-b border-stone-200 px-5 py-4"><h2 class="font-semibold">Tratamientos previstos</h2><p class="mt-1 text-sm text-stone-500">Un tratamiento realizado queda registrado por separado en el historial clínico.</p></div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[48rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-600"><tr><th class="px-5 py-3">Tratamiento</th><th class="px-5 py-3">Cantidad</th><th class="px-5 py-3">Precio estimado</th><th class="px-5 py-3">Estado</th><th class="px-5 py-3">Avance</th></tr></thead>
                 <tbody class="divide-y divide-stone-100">
                     @foreach ($treatmentPlan->items as $item)

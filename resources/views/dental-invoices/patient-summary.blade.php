@@ -11,7 +11,7 @@
 
     <section class="mt-5 ui-card overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[48rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500"><tr><th class="px-5 py-3">Procedimiento</th><th class="px-5 py-3">Fecha</th><th class="px-5 py-3">Factura</th><th class="px-5 py-3">Estado</th><th class="px-5 py-3 text-right">Importe del procedimiento</th></tr></thead>
                 <tbody class="divide-y divide-stone-100">
                     @forelse ($details as $detail)
@@ -25,7 +25,7 @@
                                     {{ $detail->invoice->number }}
                                 @endif
                             </td>
-                            <td class="px-5 py-4">{{ $detail->invoice->status->label() }}</td>
+                            <td class="px-5 py-4"><span class="ui-badge" data-status="{{ $detail->invoice->status->value }}">{{ $detail->invoice->status->label() }}</span></td>
                             <td class="px-5 py-4 text-right tabular-nums">Q {{ number_format((float) $detail->subtotal, 2) }}</td>
                         </tr>
                     @empty

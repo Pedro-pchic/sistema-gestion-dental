@@ -45,14 +45,14 @@
                     @csrf
                     <input type="hidden" name="patient_id" value="{{ $patient->id }}">
                     <div class="overflow-x-auto rounded-lg ring-1 ring-stone-200">
-                        <table class="min-w-full divide-y divide-stone-200 text-sm">
+                        <table class="w-full min-w-[42rem] divide-y divide-stone-200 text-sm">
                             <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
                                 <tr><th class="px-4 py-3">Incluir</th><th class="px-4 py-3">Procedimiento</th><th class="px-4 py-3">Realizado</th><th class="px-4 py-3 text-right">Precio histórico</th></tr>
                             </thead>
                             <tbody class="divide-y divide-stone-100">
                                 @foreach ($procedures as $procedure)
                                     <tr>
-                                        <td class="px-4 py-3"><label class="sr-only"><input type="checkbox" name="patient_treatment_ids[]" value="{{ $procedure->id }}" @checked(in_array((string) $procedure->id, old('patient_treatment_ids', []), true)) class="size-4 rounded border-stone-300 text-brand-700 focus:ring-brand-600"> Incluir {{ $procedure->treatment->name }} del {{ $procedure->performed_at->format('d/m/Y H:i') }}</label></td>
+                                        <td class="px-4 py-3"><label class="inline-flex size-11 items-center justify-center rounded-lg hover:bg-brand-50"><input type="checkbox" name="patient_treatment_ids[]" value="{{ $procedure->id }}" @checked(in_array((string) $procedure->id, old('patient_treatment_ids', []), true)) class="size-5 rounded border-stone-300 text-brand-700 focus:ring-brand-600"><span class="sr-only">Incluir {{ $procedure->treatment->name }} del {{ $procedure->performed_at->format('d/m/Y H:i') }}</span></label></td>
                                         <td class="px-4 py-3 font-medium">{{ $procedure->treatment->name }}</td>
                                         <td class="px-4 py-3">{{ $procedure->performed_at->format('d/m/Y H:i') }}</td>
                                         <td class="px-4 py-3 text-right tabular-nums">Q {{ number_format((float) $procedure->price_applied, 2) }}</td>

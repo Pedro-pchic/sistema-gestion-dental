@@ -19,9 +19,10 @@
             Nuevo inicio ({{ $timezone }})
             <input id="starts_at" name="starts_at" type="datetime-local" step="900" required
                 value="{{ old('starts_at', $startsAt) }}"
+                @error('starts_at') aria-invalid="true" aria-describedby="starts-at-error" @enderror
                 class="min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-stone-900 shadow-sm focus:border-brand-600 focus:outline-2 focus:outline-brand-600">
             @error('starts_at')
-                <span class="font-normal text-red-700">{{ $message }}</span>
+                <span id="starts-at-error" class="font-normal text-red-700">{{ $message }}</span>
             @enderror
         </label>
 
@@ -29,10 +30,12 @@
             Nueva finalización ({{ $timezone }})
             <input id="ends_at" name="ends_at" type="datetime-local" step="900" required
                 value="{{ old('ends_at', $endsAt) }}"
+                @error('ends_at') aria-invalid="true" aria-describedby="ends-at-error" @enderror
                 class="min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-stone-900 shadow-sm focus:border-brand-600 focus:outline-2 focus:outline-brand-600">
             @error('ends_at')
-                <span class="font-normal text-red-700">{{ $message }}</span>
+                <span id="ends-at-error" class="font-normal text-red-700">{{ $message }}</span>
             @enderror
+            <span class="font-normal text-stone-500">La duración es el tiempo entre el nuevo inicio y la nueva finalización. Se comprobarán los conflictos al guardar.</span>
         </label>
 
         <div class="flex flex-wrap gap-3 sm:col-span-2">

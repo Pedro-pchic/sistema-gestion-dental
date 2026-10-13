@@ -290,6 +290,54 @@ class AppointmentManagementTest extends TestCase
         }
     }
 
+    public function test_agenda_filters_by_planned_treatment_without_hiding_occupied_slots(): void
+    {
+        $receptionist = $this->userWithRole(Role::RECEPTIONIST);
+        [, $dentist, $patient] = $this->assignedPatientAndDentist();
+        $first = $this->createAppointment($receptionist, $patient, $dentist);
+        $second = $this->createAppointment($receptionist, $patient, $dentist, '2030-02-12T11:00', '2030-02-12T12:00');
+        $second->update(['planned_treatment' => 'Limpieza dental']);
+
+        $this->actingAs($receptionist)
+            ->get(route('citas.index', [
+                'view' => 'day',
+                'date' => '2030-02-12',
+                'dentist_id' => $dentist->id,
+                'treatment' => 'limpieza',
+            ]))
+            ->assertOk()
+            ->assertSee(route('citas.show', $second), false)
+            ->assertDontSee(route('citas.show', $first), false)
+            ->assertViewHas('occupiedAppointments', fn ($items): bool => $items->count() === 2)
+            ->assertViewHas('freeIntervals', fn (array $intervals): bool => count($intervals) === 1
+                && $intervals[0]['starts_at']->setTimezone('America/Guatemala')->format('H:i') === '10:00'
+                && $intervals[0]['ends_at']->setTimezone('America/Guatemala')->format('H:i') === '11:00');
+    }
+
+    public function test_availability_includes_overnight_reservations_and_excludes_cancelled_ones(): void
+    {
+        $receptionist = $this->userWithRole(Role::RECEPTIONIST);
+        [, $dentist, $patient] = $this->assignedPatientAndDentist();
+        $this->createAppointment($receptionist, $patient, $dentist, '2030-02-11T23:30', '2030-02-12T00:30');
+        $this->createAppointment($receptionist, $patient, $dentist, '2030-02-12T01:00', '2030-02-12T02:00');
+        $cancelled = $this->createAppointment($receptionist, $patient, $dentist, '2030-02-12T00:30', '2030-02-12T01:00');
+
+        $this->actingAs($receptionist)
+            ->post(route('citas.cancel', $cancelled), ['reason' => 'Cambio solicitado por el paciente.'])
+            ->assertRedirect();
+
+        $this->get(route('citas.index', [
+            'view' => 'day',
+            'date' => '2030-02-12',
+            'dentist_id' => $dentist->id,
+        ]))
+            ->assertOk()
+            ->assertViewHas('occupiedAppointments', fn ($items): bool => $items->count() === 2)
+            ->assertViewHas('freeIntervals', fn (array $intervals): bool => count($intervals) === 1
+                && $intervals[0]['starts_at']->setTimezone('America/Guatemala')->format('H:i') === '00:30'
+                && $intervals[0]['ends_at']->setTimezone('America/Guatemala')->format('H:i') === '01:00');
+    }
+
     public function test_patient_history_shows_appointments_to_authorized_users(): void
     {
         $receptionist = $this->userWithRole(Role::RECEPTIONIST);
@@ -327,7 +375,12 @@ class AppointmentManagementTest extends TestCase
             ->assertSee(route('citas.show', $ownAppointment), false)
             ->assertDontSee(route('citas.show', $otherAppointment), false)
             ->assertSeeText('Visible')
-            ->assertDontSeeText('Privado');
+            ->assertDontSeeText('Privado')
+            ->assertViewHas('occupiedAppointments', fn ($items): bool => $items->count() === 1
+                && $items->first()->id === $ownAppointment->id);
+
+        $this->get(route('citas.index', ['view' => 'day', 'date' => '2030-02-12', 'dentist_id' => $otherDentist->id]))
+            ->assertSessionHasErrors('dentist_id');
     }
 
     public function test_changing_a_dentists_role_preserves_appointment_history_and_disables_the_profile(): void

@@ -18,12 +18,16 @@
                 <dd class="mt-1 font-mono text-sm">{{ $patient->record_number }}</dd>
             </div>
             <div>
+                <dt class="text-sm font-medium text-stone-500">Fecha de registro</dt>
+                <dd class="mt-1">{{ $patient->created_at->format('d/m/Y') }}</dd>
+            </div>
+            <div>
                 <dt class="text-sm font-medium text-stone-500">Fecha de nacimiento</dt>
                 <dd class="mt-1">{{ $patient->date_of_birth?->format('d/m/Y') ?? 'Sin fecha registrada' }}</dd>
             </div>
             <div>
                 <dt class="text-sm font-medium text-stone-500">Estado</dt>
-                <dd class="mt-1 font-semibold">{{ $patient->is_active ? 'Activo' : 'Inactivo' }}</dd>
+                <dd class="mt-1"><span class="ui-badge {{ $patient->is_active ? 'ui-badge-success' : 'ui-badge-neutral' }}">{{ $patient->is_active ? 'Activo' : 'Inactivo' }}</span></dd>
             </div>
             <div>
                 <dt class="text-sm font-medium text-stone-500">Teléfono</dt>
@@ -55,11 +59,11 @@
         <div class="mt-6 flex flex-wrap gap-3 border-t border-stone-200 pt-5">
             <a href="{{ route('pacientes.index') }}" class="ui-button ui-button-secondary">Volver al listado</a>
             @can('view', $patient)
-                <a href="{{ route('pacientes.citas.index', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Historial de citas</a>
+                <a href="{{ route('pacientes.citas.index', $patient) }}" class="ui-button ui-button-secondary">Historial de citas</a>
             @endcan
 
             @can('viewFinancialSummary', $patient)
-                <a href="{{ route('pacientes.resumen-financiero', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Resumen financiero</a>
+                <a href="{{ route('pacientes.resumen-financiero', $patient) }}" class="ui-button ui-button-secondary">Resumen financiero</a>
             @endcan
 
             @can('view-dental-finances')
@@ -67,7 +71,7 @@
             @endcan
 
             @can('viewClinicalHistory', $patient)
-                <a href="{{ route('pacientes.historial-clinico', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Historial clínico</a>
+                <a href="{{ route('pacientes.historial-clinico', $patient) }}" class="ui-button ui-button-secondary">Historial clínico</a>
             @endcan
 
             @can('createClinicalRecord', $patient)
@@ -79,7 +83,7 @@
                 <form method="POST" action="{{ route('pacientes.status', $patient) }}">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="rounded-lg px-4 py-2 text-sm font-semibold {{ $patient->is_active ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200' }}">
+                    <button type="submit" class="ui-button {{ $patient->is_active ? 'ui-button-danger' : 'ui-button-secondary' }}">
                         {{ $patient->is_active ? 'Desactivar' : 'Activar' }}
                     </button>
                 </form>
@@ -89,9 +93,25 @@
                 <form method="POST" action="{{ route('pacientes.destroy', $patient) }}" onsubmit="return confirm('¿Eliminar lógicamente esta ficha?')">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-100">Eliminar ficha</button>
+                    <button type="submit" class="ui-button ui-button-danger">Eliminar ficha</button>
                 </form>
             @endcan
         </div>
     </section>
+
+    @if ($clinicalSummary !== null)
+        <section class="ui-card p-5 sm:p-6" aria-labelledby="clinical-summary-heading">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <h2 id="clinical-summary-heading" class="text-lg font-semibold text-stone-900">Resumen clínico</h2>
+                <a href="{{ route('pacientes.historial-clinico', $patient) }}" class="ui-button ui-button-secondary">Abrir expediente integral</a>
+            </div>
+            <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <div><dt class="text-stone-500">Citas</dt><dd class="mt-1 text-lg font-semibold tabular-nums">{{ $patient->appointments_count }}</dd></div>
+                <div><dt class="text-stone-500">Procedimientos realizados</dt><dd class="mt-1 text-lg font-semibold tabular-nums">{{ $patient->patient_treatments_count }}</dd></div>
+                <div><dt class="text-stone-500">Planes de tratamiento</dt><dd class="mt-1 text-lg font-semibold tabular-nums">{{ $patient->treatment_plans_count }}</dd></div>
+                <div><dt class="text-stone-500">Última atención completada</dt><dd class="mt-1 font-medium">{{ $clinicalSummary['lastAttention']?->ends_at?->setTimezone(config('appointments.timezone'))->format('d/m/Y H:i') ?? 'Sin atención completada' }}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-stone-500">Próxima cita</dt><dd class="mt-1 font-medium">@if ($clinicalSummary['nextAppointment'])<a href="{{ route('citas.show', $clinicalSummary['nextAppointment']) }}" class="text-brand-800 hover:underline">{{ $clinicalSummary['nextAppointment']->starts_at->setTimezone(config('appointments.timezone'))->format('d/m/Y H:i') }} · {{ $clinicalSummary['nextAppointment']->planned_treatment }}</a>@else Sin cita próxima @endif</dd></div>
+            </dl>
+        </section>
+    @endif
 @endsection

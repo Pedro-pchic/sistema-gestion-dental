@@ -91,6 +91,7 @@ class TreatmentPlanController extends Controller
     public function show(Patient $patient, TreatmentPlan $treatmentPlan): View
     {
         Gate::authorize('view', $treatmentPlan);
+        abort_unless($treatmentPlan->patient_id === $patient->id, 404);
 
         $treatmentPlan->load([
             'dentist:id,user_id',
@@ -105,6 +106,7 @@ class TreatmentPlanController extends Controller
 
     public function update(UpdateTreatmentPlanRequest $request, Patient $patient, TreatmentPlan $treatmentPlan): RedirectResponse
     {
+        abort_unless($treatmentPlan->patient_id === $patient->id, 404);
         $newStatus = TreatmentPlanStatus::from($request->validated('status'));
 
         DB::transaction(function () use ($newStatus, $request, $treatmentPlan): void {
@@ -140,6 +142,7 @@ class TreatmentPlanController extends Controller
         TreatmentPlan $treatmentPlan,
         TreatmentPlanItem $treatmentPlanItem,
     ): RedirectResponse {
+        abort_unless($treatmentPlan->patient_id === $patient->id, 404);
         $newStatus = TreatmentPlanStatus::from($request->validated('status'));
 
         DB::transaction(function () use ($newStatus, $request, $treatmentPlan, $treatmentPlanItem): void {

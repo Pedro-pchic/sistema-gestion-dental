@@ -162,6 +162,7 @@ class PatientTreatmentController extends Controller
     public function edit(Patient $patient, PatientTreatment $patientTreatment): View
     {
         Gate::authorize('update', $patientTreatment);
+        abort_unless($patientTreatment->patient_id === $patient->id, 404);
 
         return view('patient-treatments.edit', compact('patient', 'patientTreatment'));
     }
@@ -171,6 +172,7 @@ class PatientTreatmentController extends Controller
         Patient $patient,
         PatientTreatment $patientTreatment,
     ): RedirectResponse {
+        abort_unless($patientTreatment->patient_id === $patient->id, 404);
         $data = $request->validated();
         $previous = Arr::only($patientTreatment->getOriginal(), ['procedure_description', 'clinical_notes']);
 

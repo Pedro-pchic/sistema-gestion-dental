@@ -156,6 +156,27 @@
         @apply bg-stone-200 text-stone-700;
     }
 
+    .ui-badge[data-status='draft'] {
+        @apply bg-stone-100 text-stone-700;
+    }
+
+    .ui-badge[data-status='cancelled'] {
+        @apply bg-red-100 text-red-800;
+    }
+
+    .ui-badge[data-status='issued'] {
+        @apply bg-sky-100 text-sky-800;
+    }
+
+    .ui-badge[data-status='partially_paid'] {
+        @apply bg-amber-100 text-amber-900;
+    }
+
+    .ui-badge[data-status='paid'],
+    .ui-badge[data-status='registered'] {
+        @apply bg-emerald-100 text-emerald-800;
+    }
+
     .ui-table-wrap {
         @apply overflow-hidden rounded-2xl border border-slate-200/80 bg-warm-white shadow-[0_8px_30px_-22px_rgba(23,43,77,0.4)];
     }

@@ -28,7 +28,7 @@
             <div><dt class="text-sm font-medium text-stone-500">Paciente</dt><dd class="mt-1">{{ $payment->invoice->patient->first_name }} {{ $payment->invoice->patient->last_name }}</dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Fecha</dt><dd class="mt-1">{{ $payment->payment_date->format('d/m/Y') }}</dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Método</dt><dd class="mt-1">{{ $payment->method->label() }}</dd></div>
-            <div><dt class="text-sm font-medium text-stone-500">Estado</dt><dd class="mt-1">{{ $payment->status->label() }}</dd></div>
+            <div><dt class="text-sm font-medium text-stone-500">Estado</dt><dd class="mt-1"><span class="ui-badge" data-status="{{ $payment->status->value }}">{{ $payment->status->label() }}</span></dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Monto</dt><dd class="mt-1 font-semibold tabular-nums">Q {{ number_format((float) $payment->amount, 2) }}</dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Referencia</dt><dd class="mt-1">{{ $payment->reference ?: 'Sin referencia' }}</dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Registrado por</dt><dd class="mt-1">{{ $payment->recorder->name }}</dd></div>

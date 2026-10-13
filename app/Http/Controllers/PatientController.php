@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AppointmentStatus;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Models\Dentist;
@@ -90,12 +91,37 @@ class PatientController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Patient $patient): View
+    public function show(Request $request, Patient $patient): View
     {
         Gate::authorize('view', $patient);
         $patient->load('dentists.user');
 
-        return view('patients.show', compact('patient'));
+        $clinicalSummary = null;
+
+        if (Gate::allows('viewClinicalHistory', $patient)) {
+            $dentistId = $request->user()->hasRole(Role::DENTIST) ? $request->user()->dentist?->id : null;
+            $patient->loadCount([
+                'appointments' => fn (Builder $query): Builder => $query
+                    ->when($dentistId !== null, fn (Builder $query): Builder => $query->where('dentist_id', $dentistId)),
+                'patientTreatments',
+                'treatmentPlans',
+            ]);
+            $clinicalSummary = [
+                'lastAttention' => $patient->appointments()
+                    ->when($dentistId !== null, fn (Builder $query): Builder => $query->where('dentist_id', $dentistId))
+                    ->where('status', AppointmentStatus::Completed->value)
+                    ->latest('ends_at')
+                    ->first(['ends_at']),
+                'nextAppointment' => $patient->appointments()
+                    ->when($dentistId !== null, fn (Builder $query): Builder => $query->where('dentist_id', $dentistId))
+                    ->whereIn('status', [AppointmentStatus::Scheduled->value, AppointmentStatus::Confirmed->value])
+                    ->where('starts_at', '>=', now())
+                    ->orderBy('starts_at')
+                    ->first(['id', 'starts_at', 'planned_treatment']),
+            ];
+        }
+
+        return view('patients.show', compact('clinicalSummary', 'patient'));
     }
 
     /**

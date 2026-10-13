@@ -7,7 +7,7 @@
 @section('content')
     <section class="ui-card overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[48rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
                     <tr>
                         <th scope="col" class="px-5 py-3">Fecha y hora</th>

@@ -37,6 +37,7 @@ class AppointmentController extends Controller
                 ? ['prohibited']
                 : ['nullable', 'integer', Rule::exists('dentists', 'id')],
             'search' => ['nullable', 'string', 'max:100'],
+            'treatment' => ['nullable', 'string', 'max:100'],
         ]);
 
         $timezone = config('appointments.timezone');
@@ -81,6 +82,12 @@ class AppointmentController extends Controller
             $appointmentsQuery->where('status', $filters['status']);
         }
 
+        if (filled($filters['treatment'] ?? null)) {
+            $appointmentsQuery->whereRaw('LOWER(planned_treatment) LIKE ?', [
+                '%'.mb_strtolower(trim($filters['treatment'])).'%',
+            ]);
+        }
+
         $terms = preg_split('/\s+/', trim((string) ($filters['search'] ?? '')), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         foreach ($terms as $term) {
@@ -122,11 +129,42 @@ class AppointmentController extends Controller
                 ->orderBy('id')
                 ->get();
 
+        $availabilityDentistId = $user->hasRole(Role::DENTIST)
+            ? ($user->dentist?->is_active && $user->is_active ? $user->dentist->id : null)
+            : ($filters['dentist_id'] ?? null);
+        $occupiedAppointments = collect();
+        $freeIntervals = [];
+
+        if ($viewMode === 'day' && $availabilityDentistId !== null) {
+            $occupiedAppointments = Appointment::query()
+                ->where('dentist_id', $availabilityDentistId)
+                ->whereIn('status', AppointmentStatus::reservableValues())
+                ->where('starts_at', '<', $rangeEnd->utc())
+                ->where('ends_at', '>', $rangeStart->utc())
+                ->orderBy('starts_at')
+                ->get(['id', 'starts_at', 'ends_at']);
+            $previousEnd = null;
+
+            foreach ($occupiedAppointments as $occupiedAppointment) {
+                $start = $occupiedAppointment->starts_at->max($rangeStart->utc());
+                $end = $occupiedAppointment->ends_at->min($rangeEnd->utc());
+
+                if ($previousEnd !== null && $previousEnd->lessThan($start)) {
+                    $freeIntervals[] = ['starts_at' => $previousEnd, 'ends_at' => $start];
+                }
+
+                $previousEnd = $previousEnd?->max($end) ?? $end;
+            }
+        }
+
         return view('appointments.index', [
             'appointments' => $appointments,
             'appointmentsByDate' => $appointmentsByDate,
             'calendarDays' => $calendarDays,
             'dentists' => $dentists,
+            'availabilityDentistId' => $availabilityDentistId,
+            'occupiedAppointments' => $occupiedAppointments,
+            'freeIntervals' => $freeIntervals,
             'filters' => $filters,
             'focusDate' => $focusDate,
             'rangeStart' => $rangeStart,

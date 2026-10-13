@@ -38,6 +38,10 @@
                 <dd class="mt-1 font-semibold tabular-nums">{{ $appointment->ends_at->setTimezone($timezone)->format('d/m/Y H:i') }}</dd>
             </div>
             <div>
+                <dt class="text-xs font-semibold uppercase tracking-wide text-stone-500">Duración</dt>
+                <dd class="mt-1 font-semibold tabular-nums">{{ $appointment->starts_at->diffInMinutes($appointment->ends_at) }} min</dd>
+            </div>
+            <div>
                 <dt class="text-xs font-semibold uppercase tracking-wide text-stone-500">Odontólogo responsable</dt>
                 <dd class="mt-1">{{ $appointment->dentist?->user?->name ?? 'Odontólogo no disponible' }}</dd>
             </div>
@@ -119,16 +123,17 @@
             @endcan
 
             @can('cancel', $appointment)
-                <form method="POST" action="{{ route('citas.cancel', $appointment) }}" class="grid w-full gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <form method="POST" action="{{ route('citas.cancel', $appointment) }}" onsubmit="return confirm('¿Cancelar esta cita?')" class="grid w-full gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 sm:grid-cols-[1fr_auto] sm:items-end">
                     @csrf
                     <label for="reason" class="grid gap-1 text-sm font-semibold text-rose-950">
                         Motivo para cancelar
                         <input id="reason" name="reason" type="text" minlength="5" maxlength="1000" required value="{{ old('reason') }}"
+                            @error('reason') aria-invalid="true" aria-describedby="reason-error" @enderror
                             class="min-h-10 rounded-lg border border-rose-300 bg-white px-3 text-stone-900 focus:border-rose-600 focus:outline-2 focus:outline-rose-600">
                     </label>
                     <button type="submit" class="rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800">Cancelar cita</button>
                     @error('reason')
-                        <span class="text-sm font-normal text-rose-800 sm:col-span-2">{{ $message }}</span>
+                        <span id="reason-error" class="text-sm font-normal text-rose-800 sm:col-span-2">{{ $message }}</span>
                     @enderror
                 </form>
             @endcan

@@ -39,7 +39,7 @@
             $cards[] = ['label' => 'Citas confirmadas', 'value' => $dashboardMetrics['confirmed_appointments'], 'context' => 'En el período filtrado', 'icon' => '04'];
         } else {
             $cards[] = ['label' => 'Citas por confirmar', 'value' => $dashboardMetrics['pending_appointments'], 'context' => 'Próximas 24 horas', 'icon' => '03'];
-            $cards[] = ['label' => 'Cobros pendientes', 'value' => $dashboardMetrics['pending_invoice_count'], 'context' => 'Facturas con saldo', 'icon' => '04'];
+            $cards[] = ['label' => 'Cobros pendientes', 'value' => $dashboardMetrics['pending_invoice_count'], 'context' => 'Facturas emitidas en el período con saldo', 'icon' => '04'];
         }
     @endphp
 
@@ -77,7 +77,7 @@
                     <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Facturas emitidas</dt><dd class="mt-2 text-2xl font-bold tabular-nums text-coffee">{{ $dashboardMetrics['issued_invoice_count'] }}</dd></div>
                 @endif
                 @if ($isAdministrator || $isReceptionist)
-                    <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Saldos pendientes</dt><dd class="mt-2 break-words text-xl font-bold tabular-nums text-coffee">Q {{ number_format((float) $dashboardMetrics['pending_balance'], 2) }}</dd></div>
+                    <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Saldos pendientes del período</dt><dd class="mt-2 break-words text-xl font-bold tabular-nums text-coffee">Q {{ number_format((float) $dashboardMetrics['pending_balance'], 2) }}</dd><a href="{{ route('facturacion.facturas.index', ['balance' => 'pending', 'from' => $from, 'to' => $to]) }}" class="mt-2 inline-block text-xs font-semibold text-brand-700 underline">Ver cuentas pendientes</a></div>
                 @endif
             </dl>
         </article>

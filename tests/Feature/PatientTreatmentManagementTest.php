@@ -61,7 +61,7 @@ class PatientTreatmentManagementTest extends TestCase
             ->get(route('pacientes.historial-clinico', $patient))
             ->assertOk()
             ->assertSeeText('Sin complicaciones durante el procedimiento.')
-            ->assertSeeText('350.00');
+            ->assertDontSeeText('350.00');
     }
 
     public function test_duplicate_procedure_for_the_same_appointment_is_rejected(): void

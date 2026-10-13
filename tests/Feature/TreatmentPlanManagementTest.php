@@ -138,7 +138,7 @@ class TreatmentPlanManagementTest extends TestCase
         $this->actingAs($dentistUser)
             ->get(route('pacientes.historial-clinico', $patient))
             ->assertOk()
-            ->assertDontSeeText($treatment->name);
+            ->assertViewHas('pendingPlanItems', fn ($items): bool => $items->isEmpty());
     }
 
     private function assignedContext(): array

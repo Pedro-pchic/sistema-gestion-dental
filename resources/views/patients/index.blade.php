@@ -49,7 +49,7 @@
                             <td class="px-5 py-4 font-mono text-xs">{{ $patient->record_number }}</td>
                             <td class="px-5 py-4">{{ $patient->phone ?? '—' }}</td>
                             <td class="px-5 py-4">
-                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ring-current/10 {{ $patient->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600' }}">
+                                <span class="ui-badge {{ $patient->is_active ? 'ui-badge-success' : 'ui-badge-neutral' }}">
                                     {{ $patient->is_active ? 'Activo' : 'Inactivo' }}
                                 </span>
                             </td>

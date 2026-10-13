@@ -20,6 +20,53 @@ class DentalBillingManagementTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    public function test_invoice_listing_filters_pending_balances_and_paginates_without_counting_cancelled_payments(): void
+    {
+        $administrator = $this->userWithRole(Role::ADMINISTRATOR);
+        $patient = Patient::factory()->create(['first_name' => 'María', 'last_name' => 'Saldo']);
+        $invoice = DentalInvoice::factory()->issued()->for($patient)->for($administrator, 'creator')->create([
+            'issue_date' => '2026-10-12',
+            'total' => '100.00',
+            'balance_due' => '65.00',
+            'status' => DentalInvoiceStatus::PartiallyPaid,
+        ]);
+        DentalPayment::factory()->for($invoice, 'invoice')->for($administrator, 'recorder')->create(['amount' => '35.00']);
+        DentalPayment::factory()->for($invoice, 'invoice')->for($administrator, 'recorder')->create([
+            'amount' => '10.00',
+            'status' => DentalPaymentStatus::Cancelled,
+        ]);
+        DentalInvoice::factory()->issued()->for($patient)->for($administrator, 'creator')->create([
+            'issue_date' => '2026-10-11',
+            'total' => '90.00',
+            'balance_due' => '90.00',
+        ]);
+
+        $this->actingAs($administrator)
+            ->get(route('facturacion.facturas.index', [
+                'search' => $invoice->number,
+                'status' => DentalInvoiceStatus::PartiallyPaid->value,
+                'from' => '2026-10-12',
+                'to' => '2026-10-12',
+                'sort' => 'balance',
+                'balance' => 'pending',
+            ]))
+            ->assertOk()
+            ->assertSeeText('María Saldo')
+            ->assertSeeText('Q 35.00')
+            ->assertSeeText('Q 65.00')
+            ->assertDontSeeText('Q 90.00');
+
+        DentalInvoice::factory()->issued()->count(15)->for($patient)->for($administrator, 'creator')->create();
+        $this->actingAs($administrator)
+            ->get(route('facturacion.facturas.index', ['balance' => 'pending']))
+            ->assertOk()
+            ->assertSee('page=2', false);
+
+        $this->actingAs($administrator)
+            ->get(route('facturacion.facturas.index', ['from' => '2026-10-13', 'to' => '2026-10-12']))
+            ->assertSessionHasErrors('to');
+    }
+
     public function test_invoice_draft_uses_only_performed_procedures_and_keeps_historical_price(): void
     {
         $administrator = $this->userWithRole(Role::ADMINISTRATOR);
@@ -273,6 +320,42 @@ class DentalBillingManagementTest extends TestCase
             ->assertSeeText('Q 125.00')
             ->assertSeeText('Q 25.00')
             ->assertSeeText('Q 100.00');
+    }
+
+    public function test_report_excludes_cancelled_invoices_and_payments_from_effective_totals(): void
+    {
+        $administrator = $this->userWithRole(Role::ADMINISTRATOR);
+        $patient = Patient::factory()->create();
+        DentalInvoice::factory()->issued()->for($patient)->for($administrator, 'creator')->create([
+            'issue_date' => '2026-10-12',
+            'total' => '80.00',
+            'balance_due' => '80.00',
+        ]);
+        $cancelled = DentalInvoice::factory()->issued()->for($patient)->for($administrator, 'creator')->create([
+            'issue_date' => '2026-10-12',
+            'total' => '500.00',
+            'balance_due' => '0.00',
+            'status' => DentalInvoiceStatus::Cancelled,
+            'cancelled_at' => '2026-10-12 12:00:00',
+            'cancelled_by' => $administrator->getKey(),
+            'cancellation_reason' => 'Factura incorrecta',
+        ]);
+        DentalPayment::factory()->for($cancelled, 'invoice')->for($administrator, 'recorder')->create([
+            'amount' => '20.00',
+            'payment_date' => '2026-10-12',
+            'status' => DentalPaymentStatus::Cancelled,
+        ]);
+
+        $response = $this->actingAs($administrator)
+            ->get(route('facturacion.reportes.index', ['from' => '2026-10-12', 'to' => '2026-10-12']))
+            ->assertOk()
+            ->assertSeeText('Facturas anuladas')
+            ->assertSeeText('Q 80.00')
+            ->assertDontSeeText('Q 500.00')
+            ->assertDontSeeText('Q 20.00');
+        $this->assertSame(8000, $response->viewData('issuedInvoiceCents'));
+        $this->assertSame(0, $response->viewData('receivedCents'));
+        $this->assertSame(1, $response->viewData('cancelledInvoices'));
     }
 
     private function userWithRole(string $roleName): User

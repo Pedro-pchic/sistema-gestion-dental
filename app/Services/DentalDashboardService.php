@@ -138,6 +138,8 @@ class DentalDashboardService
                 ->with('patient:id,first_name,last_name')
                 ->whereIn('status', [DentalInvoiceStatus::Issued->value, DentalInvoiceStatus::PartiallyPaid->value])
                 ->where('balance_due', '>', 0)
+                ->whereDate('issue_date', '>=', $from)
+                ->whereDate('issue_date', '<=', $to)
                 ->orderBy('issue_date')
                 ->orderBy('id');
 
