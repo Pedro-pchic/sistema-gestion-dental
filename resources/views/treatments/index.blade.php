@@ -1,6 +1,3 @@
-<div>
-    <!-- Act only according to that maxim whereby you can, at the same time, will that it should become a universal law. - Immanuel Kant -->
-</div>
 @extends('layouts.admin')
 
 @section('title', 'Tratamientos')
@@ -14,7 +11,7 @@
 @endsection
 
 @section('content')
-    <form method="GET" action="{{ route('tratamientos.index') }}" class="grid gap-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-stone-200 sm:grid-cols-[1fr_12rem_auto] sm:items-end">
+    <form method="GET" action="{{ route('tratamientos.index') }}" class="grid gap-4 ui-card p-4 sm:grid-cols-[1fr_12rem_auto] sm:items-end">
         <div>
             <label for="search" class="block text-sm font-medium">Buscar por nombre</label>
             <input id="search" name="search" type="search" value="{{ $filters['search'] ?? '' }}" class="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
@@ -35,7 +32,7 @@
 
     <div class="ui-table-wrap">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[42rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-600">
                     <tr>
                         <th class="px-4 py-3">Tratamiento</th>

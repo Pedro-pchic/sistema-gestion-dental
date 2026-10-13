@@ -1,6 +1,3 @@
-<div>
-    <!-- Well begun is half done. - Aristotle -->
-</div>
 <div class="grid gap-5 sm:grid-cols-2">
     <div class="sm:col-span-2">
         <label for="name" class="block text-sm font-medium">Nombre del tratamiento</label>

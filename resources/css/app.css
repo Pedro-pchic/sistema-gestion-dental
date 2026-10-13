@@ -7,32 +7,33 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-brand-50: #eff6ff;
-    --color-brand-100: #dbeafe;
-    --color-brand-200: #bfdbfe;
-    --color-brand-300: #93c5fd;
-    --color-brand-400: #60a5fa;
-    --color-brand-500: #3b82f6;
-    --color-brand-600: #2563eb;
-    --color-brand-700: #1d4ed8;
-    --color-brand-800: #1e40af;
-    --color-brand-900: #1e3a8a;
-    --color-brand-950: #172554;
+    --color-brand-50: #eaf7f5;
+    --color-brand-100: #d4efeb;
+    --color-brand-200: #a9dfd8;
+    --color-brand-300: #74c9bd;
+    --color-brand-400: #3eafa2;
+    --color-brand-500: #178f83;
+    --color-brand-600: #0f766e;
+    --color-brand-700: #0d625c;
+    --color-brand-800: #0b504b;
+    --color-brand-900: #123f40;
+    --color-brand-950: #092d31;
 
-    --color-espresso: #102a56;
-    --color-leather: #1d4ed8;
-    --color-camel: #60a5fa;
-    --color-cream: #f3f8ff;
+    --color-espresso: #12343e;
+    --color-leather: #2563eb;
+    --color-camel: #74c9bd;
+    --color-cream: #f4f7fb;
     --color-warm-white: #ffffff;
-    --color-sand: #dbeafe;
+    --color-sand: #eaf7f5;
     --color-blue-accent: #2563eb;
-    --color-coffee: #12315a;
-    --color-charcoal: #0b1729;
+    --color-coffee: #172b4d;
+    --color-charcoal: #172b4d;
 }
 
 @layer base {
     :focus-visible {
         outline-color: var(--color-brand-600);
+        outline-offset: 2px;
     }
 
     ::selection {
@@ -62,9 +63,9 @@
     textarea {
         max-width: 100%;
         border-radius: 0.625rem;
-        border-color: var(--color-stone-300);
+        border-color: #cbd9e1;
         background-color: var(--color-warm-white);
-        color: var(--color-stone-900);
+        color: var(--color-charcoal);
     }
 
     input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']),
@@ -78,18 +79,29 @@
 
     input[type='checkbox'],
     input[type='radio'] {
-        accent-color: var(--color-brand-700);
+        accent-color: var(--color-brand-600);
     }
 
     label:not(.sr-only) {
-        color: var(--color-stone-800);
+        color: var(--color-charcoal);
         font-weight: 500;
+    }
+
+    [data-admin-content] input:focus-visible,
+    [data-admin-content] select:focus-visible,
+    [data-admin-content] textarea:focus-visible {
+        border-color: var(--color-brand-600);
+        outline: 2px solid var(--color-brand-200);
+    }
+
+    [data-admin-content] [aria-invalid='true'] {
+        border-color: var(--color-red-600);
     }
 }
 
 @layer components {
     .ui-button {
-        @apply inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2;
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2;
     }
 
     .ui-button-compact {
@@ -97,11 +109,11 @@
     }
 
     .ui-button-primary {
-        @apply bg-brand-800 text-white hover:bg-brand-700 focus-visible:outline-brand-700;
+        @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700 focus-visible:outline-brand-700;
     }
 
     .ui-button-secondary {
-        @apply border border-stone-300 bg-warm-white text-stone-800 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-900 focus-visible:outline-brand-600;
+        @apply border border-brand-200 bg-warm-white text-coffee hover:border-brand-400 hover:bg-brand-50 hover:text-brand-800 focus-visible:outline-brand-600;
     }
 
     .ui-button-danger {
@@ -109,7 +121,7 @@
     }
 
     .ui-card {
-        @apply rounded-2xl bg-warm-white shadow-sm ring-1 ring-stone-200;
+        @apply rounded-2xl border border-slate-200/80 bg-warm-white shadow-[0_8px_30px_-22px_rgba(23,43,77,0.4)];
     }
 
     .ui-alert-success {
@@ -121,7 +133,7 @@
     }
 
     .ui-empty-state {
-        @apply rounded-2xl bg-warm-white p-8 text-center shadow-sm ring-1 ring-stone-200;
+        @apply rounded-2xl border border-dashed border-brand-200 bg-brand-50/50 p-8 text-center;
     }
 
     .ui-badge {
@@ -145,7 +157,45 @@
     }
 
     .ui-table-wrap {
-        @apply overflow-hidden rounded-2xl bg-warm-white shadow-sm ring-1 ring-stone-200;
+        @apply overflow-hidden rounded-2xl border border-slate-200/80 bg-warm-white shadow-[0_8px_30px_-22px_rgba(23,43,77,0.4)];
+    }
+
+    [data-admin-content] table thead {
+        background-color: var(--color-brand-50);
+        color: var(--color-coffee);
+    }
+
+    [data-admin-content] table tbody tr:focus-within {
+        background-color: var(--color-brand-50);
+    }
+
+    [data-admin-content] nav[role='navigation'] a:focus-visible {
+        outline: 2px solid var(--color-brand-600);
+    }
+
+    @media (min-width: 64rem) {
+        .sidebar-collapsed [data-admin-sidebar] {
+            width: 5.5rem;
+        }
+
+        .sidebar-collapsed [data-admin-layout] {
+            padding-left: 5.5rem;
+        }
+
+        .sidebar-collapsed [data-sidebar-label],
+        .sidebar-collapsed [data-admin-sidebar] nav p,
+        .sidebar-collapsed [data-sidebar-brand],
+        .sidebar-collapsed [data-sidebar-footer] {
+            display: none;
+        }
+
+        .sidebar-collapsed [data-admin-sidebar] nav {
+            padding-inline: 0.75rem;
+        }
+
+        .sidebar-collapsed [data-admin-sidebar] nav a {
+            justify-content: center;
+        }
     }
 
     [data-admin-content] tbody tr,

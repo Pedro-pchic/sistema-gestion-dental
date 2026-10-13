@@ -11,7 +11,7 @@
 
 @section('content')
     @php($estimatedTotal = $treatmentPlan->items->sum(fn ($item) => (float) $item->estimated_unit_price * $item->quantity))
-    <section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card p-5">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <span class="ui-badge {{ $treatmentPlan->status->colorClasses() }}">{{ $treatmentPlan->status->label() }}</span>
@@ -37,7 +37,7 @@
         @endcan
     </section>
 
-    <section class="rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card">
         <div class="border-b border-stone-200 px-5 py-4"><h2 class="font-semibold">Tratamientos previstos</h2><p class="mt-1 text-sm text-stone-500">Un tratamiento realizado queda registrado por separado en el historial clínico.</p></div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-stone-200 text-sm">

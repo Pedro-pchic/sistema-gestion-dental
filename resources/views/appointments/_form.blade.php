@@ -1,6 +1,3 @@
-<div>
-    <!-- It is never too late to be what you might have been. - George Eliot -->
-</div>
 <form method="POST" action="{{ route('citas.store') }}" class="ui-card grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
     @csrf
 

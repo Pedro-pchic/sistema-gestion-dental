@@ -1,6 +1,3 @@
-<div>
-    <!-- Happiness is not something readymade. It comes from your own actions. - Dalai Lama -->
-</div>
 @extends('layouts.admin')
 
 @section('title', 'Planes de tratamiento')

@@ -1,6 +1,3 @@
-<div>
-    <!-- Life is available only in the present moment. - Thich Nhat Hanh -->
-</div>
 @extends('layouts.admin')
 
 @section('title', 'Editar tratamiento')
@@ -8,7 +5,7 @@
 @section('subheading', $treatment->name)
 
 @section('content')
-    <form method="POST" action="{{ route('tratamientos.update', $treatment) }}" class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
+    <form method="POST" action="{{ route('tratamientos.update', $treatment) }}" class="ui-card p-5 sm:p-6">
         @csrf
         @method('PUT')
         @include('treatments._form')

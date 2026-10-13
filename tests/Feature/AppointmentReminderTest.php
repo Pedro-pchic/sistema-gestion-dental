@@ -47,6 +47,22 @@ class AppointmentReminderTest extends TestCase
         $this->assertDatabaseCount('appointment_reminder_attempts', 0);
     }
 
+    public function test_command_queues_due_reminders_without_sending_them(): void
+    {
+        $this->freezeTime();
+        config(['appointment_reminders.email.enabled' => true]);
+        Queue::fake([SendAppointmentReminder::class]);
+        $this->appointment($this->consentingPatient());
+
+        $this->artisan('appointments:dispatch-reminders')
+            ->expectsOutput('Recordatorios encolados: 1.')
+            ->assertSuccessful();
+
+        Queue::assertPushed(SendAppointmentReminder::class, 1);
+        $this->assertDatabaseCount('appointment_reminders', 1);
+        $this->assertDatabaseCount('appointment_reminder_attempts', 0);
+    }
+
     public function test_skips_a_queued_reminder_after_cancellation_or_rescheduling(): void
     {
         $this->freezeTime();

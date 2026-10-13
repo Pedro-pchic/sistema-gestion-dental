@@ -7,6 +7,7 @@ use App\Enums\AppointmentStatus;
 use App\Enums\DentalInvoiceStatus;
 use App\Enums\DentalPaymentStatus;
 use App\Models\Appointment;
+use App\Models\AppointmentEvent;
 use App\Models\AppointmentReminder;
 use App\Models\DentalInvoice;
 use App\Models\DentalPayment;
@@ -80,6 +81,15 @@ class DentalDashboardService
             ->limit(10)
             ->get(['id', 'patient_id', 'dentist_id', 'starts_at', 'ends_at', 'status']);
 
+        $recentActivityQuery = AppointmentEvent::query()
+            ->with('appointment.patient:id,first_name,last_name')
+            ->latest('id')
+            ->limit(5);
+
+        if ($isDentist) {
+            $recentActivityQuery->whereHas('appointment', fn ($query) => $query->where('dentist_id', $dentistId ?? 0));
+        }
+
         $pendingAppointmentsQuery = Appointment::query()
             ->where('status', AppointmentStatus::Scheduled->value)
             ->where('starts_at', '>', now('UTC'))
@@ -103,6 +113,7 @@ class DentalDashboardService
             'completed_appointments' => $appointmentStatuses[AppointmentStatus::Completed->value] ?? 0,
             'pending_appointments' => $pendingAppointmentsQuery->count(),
             'upcoming_appointments' => $upcomingAppointments,
+            'recent_activity' => $recentActivityQuery->get(['id', 'appointment_id', 'event_type', 'created_at']),
             'notification_status' => $this->notificationStatus($isAdministrator || $isReceptionist),
         ];
 

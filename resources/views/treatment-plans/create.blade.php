@@ -1,6 +1,3 @@
-<div>
-    <!-- Well begun is half done. - Aristotle -->
-</div>
 @extends('layouts.admin')
 
 @section('title', 'Crear plan de tratamiento')
@@ -14,7 +11,7 @@
             <a href="{{ route('tratamientos.index') }}" class="ml-1 font-semibold underline">Ver catálogo</a>
         </div>
     @else
-        <form method="POST" action="{{ route('pacientes.planes.store', $patient) }}" class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
+        <form method="POST" action="{{ route('pacientes.planes.store', $patient) }}" class="ui-card p-5 sm:p-6">
             @csrf
             <div class="grid gap-5 sm:grid-cols-2">
                 <div class="sm:col-span-2">

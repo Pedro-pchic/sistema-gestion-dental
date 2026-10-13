@@ -1,6 +1,3 @@
-<div>
-    <!-- Happiness is not something readymade. It comes from your own actions. - Dalai Lama -->
-</div>
 @extends('layouts.admin')
 
 @section('title', 'Registrar procedimiento')
@@ -8,7 +5,7 @@
 @section('subheading', $patient->first_name.' '.$patient->last_name.' · Ficha '.$patient->record_number)
 
 @section('content')
-    <form method="POST" action="{{ route('pacientes.tratamientos.store', $patient) }}" class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
+    <form method="POST" action="{{ route('pacientes.tratamientos.store', $patient) }}" class="ui-card p-5 sm:p-6">
         @csrf
         @include('patient-treatments._form')
         <p class="mt-5 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-900">El precio vigente del catálogo se guardará en este procedimiento como precio histórico.</p>

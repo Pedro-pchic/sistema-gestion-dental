@@ -27,36 +27,32 @@
 
     @php
         $cards = [
-            ['label' => $isDentist ? 'Pacientes asignados' : 'Pacientes activos', 'value' => $dashboardMetrics['active_patients'], 'context' => $isDentist ? 'Fichas autorizadas' : 'En el consultorio'],
-            ['label' => 'Citas programadas hoy', 'value' => $dashboardMetrics['appointments_today'], 'context' => 'Hora local del consultorio'],
-            ['label' => 'Citas confirmadas', 'value' => $dashboardMetrics['confirmed_appointments'], 'context' => 'En el período filtrado'],
+            ['label' => $isDentist ? 'Pacientes asignados' : 'Pacientes activos', 'value' => $dashboardMetrics['active_patients'], 'context' => $isDentist ? 'Fichas autorizadas' : 'En el consultorio', 'icon' => '01'],
+            ['label' => 'Citas del día', 'value' => $dashboardMetrics['appointments_today'], 'context' => 'Hora local del consultorio', 'icon' => '02'],
         ];
 
-        if ($isAdministrator || $isDentist) {
-            $cards[] = ['label' => 'Citas completadas', 'value' => $dashboardMetrics['completed_appointments'], 'context' => 'En el período filtrado'];
-            $cards[] = ['label' => 'Tratamientos realizados', 'value' => $dashboardMetrics['treatments_completed'], 'context' => 'En el período filtrado'];
-        }
-
         if ($isAdministrator) {
-            $cards[] = ['label' => 'Citas canceladas', 'value' => $dashboardMetrics['cancelled_appointments'], 'context' => 'En el período filtrado'];
-            $cards[] = ['label' => 'Odontólogos activos', 'value' => $dashboardMetrics['active_dentists'], 'context' => 'Perfiles habilitados'];
-            $cards[] = ['label' => 'Facturas emitidas', 'value' => $dashboardMetrics['issued_invoice_count'], 'context' => 'En el período filtrado'];
-            $cards[] = ['label' => 'Ingresos registrados', 'value' => 'Q '.number_format((float) $dashboardMetrics['registered_income'], 2), 'context' => 'Pagos odontológicos del período'];
-            $cards[] = ['label' => 'Saldos pendientes', 'value' => 'Q '.number_format((float) $dashboardMetrics['pending_balance'], 2), 'context' => $dashboardMetrics['pending_invoice_count'].' facturas pendientes'];
-        } elseif ($isReceptionist) {
-            $cards[] = ['label' => 'Citas por confirmar', 'value' => $dashboardMetrics['pending_appointments'], 'context' => 'Próximas 24 horas'];
-            $cards[] = ['label' => 'Cobros pendientes', 'value' => $dashboardMetrics['pending_invoice_count'], 'context' => 'Facturas con saldo'];
-            $cards[] = ['label' => 'Saldo por cobrar', 'value' => 'Q '.number_format((float) $dashboardMetrics['pending_balance'], 2), 'context' => 'Facturas con saldo pendiente'];
+            $cards[] = ['label' => 'Tratamientos realizados', 'value' => $dashboardMetrics['treatments_completed'], 'context' => 'En el período filtrado', 'icon' => '03'];
+            $cards[] = ['label' => 'Ingresos registrados', 'value' => 'Q '.number_format((float) $dashboardMetrics['registered_income'], 2), 'context' => 'Pagos odontológicos del período', 'icon' => '04'];
+        } elseif ($isDentist) {
+            $cards[] = ['label' => 'Tratamientos realizados', 'value' => $dashboardMetrics['treatments_completed'], 'context' => 'En el período filtrado', 'icon' => '03'];
+            $cards[] = ['label' => 'Citas confirmadas', 'value' => $dashboardMetrics['confirmed_appointments'], 'context' => 'En el período filtrado', 'icon' => '04'];
+        } else {
+            $cards[] = ['label' => 'Citas por confirmar', 'value' => $dashboardMetrics['pending_appointments'], 'context' => 'Próximas 24 horas', 'icon' => '03'];
+            $cards[] = ['label' => 'Cobros pendientes', 'value' => $dashboardMetrics['pending_invoice_count'], 'context' => 'Facturas con saldo', 'icon' => '04'];
         }
     @endphp
 
-    <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores del consultorio">
+    <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores principales del consultorio">
         @foreach ($cards as $metric)
-            <article class="ui-card relative overflow-hidden p-5">
-                <span class="absolute inset-y-0 left-0 w-1 bg-brand-600" aria-hidden="true"></span>
-                <p class="text-sm font-semibold text-stone-600">{{ $metric['label'] }}</p>
-                <p class="mt-3 break-words text-3xl font-bold tracking-tight text-stone-950 tabular-nums">{{ $metric['value'] }}</p>
-                <p class="mt-2 text-xs text-stone-500">{{ $metric['context'] }}</p>
+            <article class="ui-card relative overflow-hidden p-5 sm:p-6">
+                <span class="absolute inset-x-0 top-0 h-1 bg-brand-500" aria-hidden="true"></span>
+                <div class="flex items-start justify-between gap-3">
+                    <p class="text-sm font-semibold text-slate-600">{{ $metric['label'] }}</p>
+                    <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-xs font-bold text-brand-700" aria-hidden="true">{{ $metric['icon'] }}</span>
+                </div>
+                <p class="mt-4 break-words text-3xl font-bold tracking-tight text-coffee tabular-nums">{{ $metric['value'] }}</p>
+                <p class="mt-2 text-xs text-slate-500">{{ $metric['context'] }}</p>
             </article>
         @endforeach
     </section>
@@ -67,6 +63,57 @@
             <a href="{{ route('citas.index') }}" class="mt-2 inline-flex font-semibold underline underline-offset-2">Revisar agenda</a>
         </aside>
     @endif
+
+    <section class="grid gap-6 lg:grid-cols-2" aria-label="Resumen del consultorio">
+        <article class="ui-card p-5 sm:p-6">
+            <h2 class="text-lg font-bold text-coffee">Resumen de estados</h2>
+            <p class="mt-1 text-sm text-slate-600">Citas del período seleccionado.</p>
+            <dl class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Confirmadas</dt><dd class="mt-2 text-2xl font-bold tabular-nums text-coffee">{{ $dashboardMetrics['confirmed_appointments'] }}</dd></div>
+                <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Completadas</dt><dd class="mt-2 text-2xl font-bold tabular-nums text-coffee">{{ $dashboardMetrics['completed_appointments'] }}</dd></div>
+                @if ($isAdministrator)
+                    <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Canceladas</dt><dd class="mt-2 text-2xl font-bold tabular-nums text-coffee">{{ $dashboardMetrics['cancelled_appointments'] }}</dd></div>
+                    <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Odontólogos activos</dt><dd class="mt-2 text-2xl font-bold tabular-nums text-coffee">{{ $dashboardMetrics['active_dentists'] }}</dd></div>
+                    <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Facturas emitidas</dt><dd class="mt-2 text-2xl font-bold tabular-nums text-coffee">{{ $dashboardMetrics['issued_invoice_count'] }}</dd></div>
+                @endif
+                @if ($isAdministrator || $isReceptionist)
+                    <div class="rounded-xl bg-brand-50 p-4"><dt class="text-xs font-semibold text-brand-800">Saldos pendientes</dt><dd class="mt-2 break-words text-xl font-bold tabular-nums text-coffee">Q {{ number_format((float) $dashboardMetrics['pending_balance'], 2) }}</dd></div>
+                @endif
+            </dl>
+        </article>
+
+        <article class="ui-card overflow-hidden">
+            <div class="border-b border-slate-100 px-5 py-4 sm:px-6">
+                <h2 class="text-lg font-bold text-coffee">Actividad reciente</h2>
+                <p class="mt-1 text-sm text-slate-600">Movimientos de la agenda, sin notas clínicas.</p>
+            </div>
+            <div class="divide-y divide-slate-100">
+                @forelse ($dashboardMetrics['recent_activity'] as $activity)
+                    @php
+                        $activityLabel = match ($activity->event_type) {
+                            'created' => 'Cita programada',
+                            'rescheduled' => 'Cita reprogramada',
+                            'confirmed' => 'Cita confirmada',
+                            'started' => 'Atención iniciada',
+                            'completed' => 'Atención completada',
+                            'cancelled' => 'Cita cancelada',
+                            'no_show' => 'Inasistencia registrada',
+                            default => 'Cita actualizada',
+                        };
+                    @endphp
+                    <div class="flex items-start justify-between gap-3 px-5 py-3 sm:px-6">
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-coffee">{{ $activityLabel }}</p>
+                            <p class="truncate text-xs text-slate-600">{{ $activity->appointment?->patient?->first_name }} {{ $activity->appointment?->patient?->last_name }}</p>
+                        </div>
+                        <time datetime="{{ $activity->created_at->toIso8601String() }}" class="shrink-0 text-xs text-slate-500">{{ $activity->created_at->timezone($timezone)->format('d/m H:i') }}</time>
+                    </div>
+                @empty
+                    <p class="px-5 py-8 text-sm text-slate-500 sm:px-6">Todavía no hay actividad de citas.</p>
+                @endforelse
+            </div>
+        </article>
+    </section>
 
     <section class="grid gap-6 xl:grid-cols-3">
         <article class="ui-card overflow-hidden xl:col-span-2">

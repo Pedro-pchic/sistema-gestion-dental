@@ -6,12 +6,12 @@
 
 @section('actions')
     @can('update', $patient)
-        <a href="{{ route('pacientes.edit', $patient) }}" class="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-50">Editar ficha</a>
+        <a href="{{ route('pacientes.edit', $patient) }}" class="ui-button ui-button-secondary">Editar ficha</a>
     @endcan
 @endsection
 
 @section('content')
-    <section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card p-5 sm:p-6">
         <dl class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div>
                 <dt class="text-sm font-medium text-stone-500">Código de ficha</dt>
@@ -53,7 +53,7 @@
         @endcan
 
         <div class="mt-6 flex flex-wrap gap-3 border-t border-stone-200 pt-5">
-            <a href="{{ route('pacientes.index') }}" class="rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold hover:bg-stone-50">Volver al listado</a>
+            <a href="{{ route('pacientes.index') }}" class="ui-button ui-button-secondary">Volver al listado</a>
             @can('view', $patient)
                 <a href="{{ route('pacientes.citas.index', $patient) }}" class="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100">Historial de citas</a>
             @endcan
@@ -63,7 +63,7 @@
             @endcan
 
             @can('view-dental-finances')
-                <a href="{{ route('facturacion.facturas.create', ['patient_id' => $patient->id]) }}" class="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-50">Crear factura</a>
+                <a href="{{ route('facturacion.facturas.create', ['patient_id' => $patient->id]) }}" class="ui-button ui-button-secondary">Crear factura</a>
             @endcan
 
             @can('viewClinicalHistory', $patient)
@@ -71,8 +71,8 @@
             @endcan
 
             @can('createClinicalRecord', $patient)
-                <a href="{{ route('pacientes.tratamientos.create', $patient) }}" class="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">Registrar procedimiento</a>
-                <a href="{{ route('pacientes.planes.create', $patient) }}" class="rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold hover:bg-stone-50">Crear plan</a>
+                <a href="{{ route('pacientes.tratamientos.create', $patient) }}" class="ui-button ui-button-primary">Registrar procedimiento</a>
+                <a href="{{ route('pacientes.planes.create', $patient) }}" class="ui-button ui-button-secondary">Crear plan</a>
             @endcan
 
             @can('update', $patient)

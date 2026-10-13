@@ -7,14 +7,15 @@
 @section('actions')
     <div class="flex flex-wrap gap-2">
         @if ($invoice->number)
-            <a href="{{ route('facturacion.facturas.document', $invoice) }}" class="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-50">Comprobante imprimible</a>
+            <a href="{{ route('facturacion.facturas.document', $invoice) }}" class="ui-button ui-button-secondary">Comprobante imprimible</a>
         @endif
         @can('cancel', $invoice)
             @if ($invoice->status !== \App\Enums\DentalInvoiceStatus::Cancelled)
                 <form method="POST" action="{{ route('facturacion.facturas.cancel', $invoice) }}" class="flex flex-wrap items-center gap-2">
                     @csrf
-                    <input name="reason" required minlength="5" maxlength="1000" placeholder="Motivo de anulación" class="w-52 rounded-md border border-stone-300 px-3 py-2 text-sm">
-                    <button type="submit" class="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Anular factura</button>
+                    <label for="invoice-cancel-reason" class="sr-only">Motivo de anulación de la factura</label>
+                    <input id="invoice-cancel-reason" name="reason" required minlength="5" maxlength="1000" placeholder="Motivo de anulación" class="w-52 rounded-md border border-stone-300 px-3 py-2 text-sm">
+                    <button type="submit" class="ui-button ui-button-danger">Anular factura</button>
                 </form>
             @endif
         @endcan
@@ -22,11 +23,7 @@
 @endsection
 
 @section('content')
-    @if ($errors->any())
-        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{{ $errors->first() }}</div>
-    @endif
-
-    <section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card p-5 sm:p-6">
         <dl class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <div><dt class="text-sm font-medium text-stone-500">Paciente</dt><dd class="mt-1 font-semibold">{{ $invoice->patient->first_name }} {{ $invoice->patient->last_name }}</dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Código de ficha</dt><dd class="mt-1">{{ $invoice->patient->record_number }}</dd></div>
@@ -42,7 +39,7 @@
         </dl>
     </section>
 
-    <section class="mt-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <section class="mt-6 ui-card overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500"><tr><th class="px-5 py-3">Procedimiento realizado</th><th class="px-5 py-3 text-right">Cantidad</th><th class="px-5 py-3 text-right">Precio unitario</th><th class="px-5 py-3 text-right">Subtotal</th></tr></thead>
@@ -64,7 +61,7 @@
 
     @can('recordPayment', $invoice)
         @if (in_array($invoice->status, [\App\Enums\DentalInvoiceStatus::Issued, \App\Enums\DentalInvoiceStatus::PartiallyPaid], true) && (float) $invoice->balance_due > 0)
-            <form method="POST" action="{{ route('facturacion.pagos.store', $invoice) }}" class="mt-6 grid gap-4 rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200 sm:grid-cols-2 lg:grid-cols-3">
+            <form method="POST" action="{{ route('facturacion.pagos.store', $invoice) }}" class="mt-6 grid gap-4 ui-card p-5 sm:p-6 sm:grid-cols-2 lg:grid-cols-3">
                 @csrf
                 <input type="hidden" name="idempotency_key" value="{{ $paymentRequestKey }}">
                 <div class="sm:col-span-2 lg:col-span-3"><h2 class="text-lg font-semibold">Registrar pago</h2><p class="mt-1 text-sm text-stone-600">Saldo disponible: Q {{ number_format((float) $invoice->balance_due, 2) }}</p></div>
@@ -88,7 +85,7 @@
                     <input name="notes" maxlength="2000" value="{{ old('notes') }}" class="rounded-md border border-stone-300 px-3 py-2 font-normal">
                 </label>
                 <div class="sm:col-span-2 lg:col-span-3">@error('amount')<p class="text-sm text-red-700">{{ $message }}</p>@enderror @error('invoice')<p class="text-sm text-red-700">{{ $message }}</p>@enderror</div>
-                <button type="submit" class="self-start rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">Guardar pago</button>
+                <button type="submit" class="self-start ui-button ui-button-primary">Guardar pago</button>
             </form>
         @endif
     @endcan
@@ -98,12 +95,12 @@
             <form method="POST" action="{{ route('facturacion.facturas.issue', $invoice) }}" class="mt-6 rounded-xl bg-brand-50 p-5 ring-1 ring-brand-200">
                 @csrf
                 <p class="text-sm text-brand-900">Al emitir se asignará el número y se fijarán los importes de este comprobante interno.</p>
-                <button type="submit" class="mt-4 rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">Emitir factura</button>
+                <button type="submit" class="mt-4 ui-button ui-button-primary">Emitir factura</button>
             </form>
         @endcan
     @endif
 
-    <section class="mt-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
+    <section class="mt-6 ui-card p-5 sm:p-6">
         <h2 class="text-lg font-semibold">Historial de pagos</h2>
         @if ($invoice->payments->isEmpty())
             <p class="mt-3 text-sm text-stone-600">No hay pagos registrados.</p>
@@ -122,7 +119,7 @@
     </section>
 
     <div class="mt-6 flex flex-wrap gap-3">
-        <a href="{{ route('facturacion.facturas.index') }}" class="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-50">Volver a facturas</a>
-        <a href="{{ route('pacientes.resumen-financiero', $invoice->patient) }}" class="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-50">Resumen del paciente</a>
+        <a href="{{ route('facturacion.facturas.index') }}" class="ui-button ui-button-secondary">Volver a facturas</a>
+        <a href="{{ route('pacientes.resumen-financiero', $invoice->patient) }}" class="ui-button ui-button-secondary">Resumen del paciente</a>
     </div>
 @endsection

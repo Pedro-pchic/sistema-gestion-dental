@@ -73,6 +73,18 @@ class StorePatientTreatmentRequest extends FormRequest
             $patient = $this->route('patient');
             $dentistId = $this->user()?->dentist?->id;
             $treatmentId = $this->integer('treatment_id');
+            $timezone = config('appointments.timezone');
+            $performedAt = CarbonImmutable::createFromFormat(
+                '!Y-m-d\\TH:i',
+                $this->string('performed_at')->toString(),
+                $timezone,
+            );
+
+            if ($performedAt !== false && $performedAt->greaterThan(now($timezone))) {
+                $validator->errors()->add('performed_at', 'El procedimiento no puede registrarse con una fecha y hora futura.');
+
+                return;
+            }
 
             if ($this->filled('appointment_id') && PatientTreatment::query()
                 ->where('appointment_id', $this->integer('appointment_id'))
@@ -98,13 +110,6 @@ class StorePatientTreatmentRequest extends FormRequest
             }
 
             if (! $this->filled('appointment_id') && config('dental.allow_treatment_without_appointment')) {
-                $timezone = config('appointments.timezone');
-                $performedAt = CarbonImmutable::createFromFormat(
-                    '!Y-m-d\\TH:i',
-                    $this->string('performed_at')->toString(),
-                    $timezone,
-                );
-
                 if ($performedAt !== false && PatientTreatment::query()
                     ->where('patient_id', $patient->id)
                     ->where('dentist_id', $dentistId)

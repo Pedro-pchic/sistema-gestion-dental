@@ -1,6 +1,3 @@
-<div>
-    <!-- Well begun is half done. - Aristotle -->
-</div>
 @extends('layouts.admin')
 
 @section('title', 'Historial clínico')
@@ -16,7 +13,7 @@
 @endsection
 
 @section('content')
-    <section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card p-5">
         <h2 class="font-semibold text-stone-900">Información del paciente</h2>
         <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div><dt class="text-stone-500">Fecha de nacimiento</dt><dd class="mt-1 font-medium">{{ $patient->date_of_birth?->format('d/m/Y') ?? 'Sin fecha' }}</dd></div>
@@ -26,7 +23,7 @@
         </dl>
     </section>
 
-    <form method="GET" action="{{ route('pacientes.historial-clinico', $patient) }}" class="grid gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
+    <form method="GET" action="{{ route('pacientes.historial-clinico', $patient) }}" class="grid gap-4 ui-card p-5 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
         <div><label for="date_from" class="block text-sm font-medium">Desde</label><input id="date_from" name="date_from" type="date" value="{{ $filters['date_from'] ?? '' }}" class="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"></div>
         <div><label for="date_to" class="block text-sm font-medium">Hasta</label><input id="date_to" name="date_to" type="date" value="{{ $filters['date_to'] ?? '' }}" class="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"></div>
         <div>
@@ -50,7 +47,7 @@
         <div class="flex gap-2"><button type="submit" class="ui-button ui-button-primary">Filtrar</button><a href="{{ route('pacientes.historial-clinico', $patient) }}" class="ui-button ui-button-secondary">Limpiar</a></div>
     </form>
 
-    <section class="rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 px-5 py-4">
             <div><h2 class="font-semibold">Tratamientos pendientes</h2><p class="mt-1 text-sm text-stone-500">Procedimientos planificados que aún no se han registrado como realizados.</p></div>
             <a href="{{ route('pacientes.planes.index', $patient) }}" class="text-sm font-semibold text-brand-800 hover:underline">Ver planes</a>
@@ -76,7 +73,7 @@
         @if ($pendingPlanItems->hasPages())<div class="border-t border-stone-200 px-5 py-3">{{ $pendingPlanItems->links() }}</div>@endif
     </section>
 
-    <section class="rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card">
         <div class="border-b border-stone-200 px-5 py-4"><h2 class="font-semibold">Historial de citas</h2></div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-stone-200 text-sm">
@@ -93,7 +90,7 @@
         @if ($appointments->hasPages())<div class="border-t border-stone-200 px-5 py-3">{{ $appointments->links() }}</div>@endif
     </section>
 
-    <section class="rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card">
         <div class="border-b border-stone-200 px-5 py-4"><h2 class="font-semibold">Procedimientos realizados</h2><p class="mt-1 text-sm text-stone-500">Los precios reflejan el importe guardado al momento de cada procedimiento.</p></div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-stone-200 text-sm">

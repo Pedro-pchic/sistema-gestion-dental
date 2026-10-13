@@ -209,6 +209,36 @@ class DentalBillingManagementTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_patient_financial_summary_paginates_procedure_details(): void
+    {
+        $administrator = $this->userWithRole(Role::ADMINISTRATOR);
+        $patient = Patient::factory()->create();
+        $procedures = [];
+
+        foreach (range(1, 21) as $number) {
+            $procedures[] = $this->procedure(
+                $patient,
+                '10.00',
+                'Caso '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                null,
+            );
+        }
+
+        $this->issueInvoice($administrator, $patient, $procedures);
+
+        $this->actingAs($administrator)
+            ->get(route('pacientes.resumen-financiero', $patient))
+            ->assertOk()
+            ->assertSee('page=2', false)
+            ->assertSeeText('Caso 21')
+            ->assertDontSeeText('Caso 01');
+
+        $this->actingAs($administrator)
+            ->get(route('pacientes.resumen-financiero', [$patient, 'page' => 2]))
+            ->assertOk()
+            ->assertSeeText('Caso 01');
+    }
+
     public function test_printable_documents_omit_clinical_notes_and_reports_show_financial_totals(): void
     {
         $administrator = $this->userWithRole(Role::ADMINISTRATOR);

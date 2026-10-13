@@ -9,7 +9,7 @@
         <p class="rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">Se muestran únicamente los importes de tus procedimientos. No se muestran pagos ni saldos generales del paciente.</p>
     @endif
 
-    <section class="mt-5 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <section class="mt-5 ui-card overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500"><tr><th class="px-5 py-3">Procedimiento</th><th class="px-5 py-3">Fecha</th><th class="px-5 py-3">Factura</th><th class="px-5 py-3">Estado</th><th class="px-5 py-3 text-right">Importe del procedimiento</th></tr></thead>
@@ -34,6 +34,9 @@
                 </tbody>
             </table>
         </div>
+        @if ($details->hasPages())
+            <div class="border-t border-stone-200 px-5 py-3">{{ $details->links() }}</div>
+        @endif
     </section>
-    <div class="mt-5"><a href="{{ route('pacientes.show', $patient) }}" class="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-50">Volver al paciente</a></div>
+    <div class="mt-5"><a href="{{ route('pacientes.show', $patient) }}" class="ui-button ui-button-secondary">Volver al paciente</a></div>
 @endsection

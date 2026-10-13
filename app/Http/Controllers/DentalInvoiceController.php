@@ -186,7 +186,8 @@ class DentalInvoiceController extends Controller
                 'patientTreatment.treatment:id,name',
             ])
             ->latest('id')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         return view('dental-invoices.patient-summary', compact('patient', 'details', 'isDentist'));
     }

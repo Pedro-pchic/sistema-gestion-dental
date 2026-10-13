@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AppointmentReminderStatus;
 use App\Enums\AppointmentStatus;
 use App\Enums\DentalInvoiceStatus;
 use App\Enums\DentalPaymentStatus;
 use App\Models\Appointment;
+use App\Models\AppointmentEvent;
+use App\Models\AppointmentReminder;
 use App\Models\DentalInvoice;
 use App\Models\DentalPayment;
 use App\Models\Dentist;
@@ -27,10 +30,23 @@ class DentalDashboardTest extends TestCase
         $administrator = $this->userWithRole(Role::ADMINISTRATOR);
         $patient = Patient::factory()->create(['is_active' => true]);
 
-        $this->appointment($patient, AppointmentStatus::Scheduled);
+        $scheduledAppointment = $this->appointment($patient, AppointmentStatus::Scheduled);
         $this->appointment($patient, AppointmentStatus::Confirmed);
         $this->appointment($patient, AppointmentStatus::Cancelled);
         $this->appointment($patient, AppointmentStatus::Completed);
+        AppointmentReminder::query()->create([
+            'appointment_id' => $scheduledAppointment->getKey(),
+            'patient_id' => $patient->getKey(),
+            'channel' => 'email',
+            'appointment_starts_at' => $scheduledAppointment->starts_at,
+            'scheduled_at' => $scheduledAppointment->starts_at->subHours(24),
+            'status' => AppointmentReminderStatus::Pending,
+        ]);
+        AppointmentEvent::query()->create([
+            'appointment_id' => $scheduledAppointment->getKey(),
+            'user_id' => $administrator->getKey(),
+            'event_type' => AppointmentEvent::CREATED,
+        ]);
         $yesterday = CarbonImmutable::now('UTC')->subDay();
         $this->appointment($patient, AppointmentStatus::Confirmed, null, [
             'starts_at' => $yesterday,
@@ -81,8 +97,12 @@ class DentalDashboardTest extends TestCase
         $this->assertSame(1, $metrics['pending_invoice_count']);
         $this->assertSame(75.0, (float) $metrics['pending_balance']);
         $this->assertSame(25.0, (float) $metrics['registered_income']);
+        $this->assertSame(1, $metrics['notification_status']['pending']);
+        $this->assertSame(0, $metrics['notification_status']['failed_last_7_days']);
+        $this->assertCount(1, $metrics['recent_activity']);
         $response->assertSeeText('Ingresos registrados')
             ->assertSeeText('Saldos pendientes')
+            ->assertSeeText('Cita programada')
             ->assertDontSeeText('Confidencial y no visible en el panel.');
     }
 
@@ -118,8 +138,15 @@ class DentalDashboardTest extends TestCase
         $otherPatient = Patient::factory()->create(['first_name' => 'Paciente', 'last_name' => 'Ajeno']);
         $dentist->patients()->attach($assignedPatient);
         $otherDentist->patients()->attach($otherPatient);
-        $this->appointment($assignedPatient, AppointmentStatus::Confirmed, $dentist);
-        $this->appointment($otherPatient, AppointmentStatus::Confirmed, $otherDentist);
+        $assignedAppointment = $this->appointment($assignedPatient, AppointmentStatus::Confirmed, $dentist);
+        $otherAppointment = $this->appointment($otherPatient, AppointmentStatus::Confirmed, $otherDentist);
+        foreach ([$assignedAppointment, $otherAppointment] as $appointment) {
+            AppointmentEvent::query()->create([
+                'appointment_id' => $appointment->getKey(),
+                'user_id' => $dentistUser->getKey(),
+                'event_type' => AppointmentEvent::CONFIRMED,
+            ]);
+        }
         PatientTreatment::factory()->for($dentist, 'dentist')->for($assignedPatient)->create();
 
         $response = $this->actingAs($dentistUser)
@@ -135,8 +162,11 @@ class DentalDashboardTest extends TestCase
         $this->assertSame(1, $metrics['active_patients']);
         $this->assertSame(1, $metrics['confirmed_appointments']);
         $this->assertSame(1, $metrics['treatments_completed']);
+        $this->assertCount(1, $metrics['recent_activity']);
+        $this->assertSame($assignedAppointment->getKey(), $metrics['recent_activity']->first()->appointment_id);
         $this->assertArrayNotHasKey('registered_income', $metrics);
         $this->assertArrayNotHasKey('pending_balance', $metrics);
+        $this->assertArrayNotHasKey('pending', $metrics['notification_status']);
     }
 
     public function test_unrecognized_role_cannot_view_dental_dashboard(): void

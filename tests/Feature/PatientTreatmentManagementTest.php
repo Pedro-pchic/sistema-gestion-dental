@@ -13,6 +13,7 @@ use App\Models\Treatment;
 use App\Models\TreatmentPlan;
 use App\Models\TreatmentPlanItem;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
@@ -78,6 +79,24 @@ class PatientTreatmentManagementTest extends TestCase
             ->assertSessionHasErrors('treatment_id');
 
         $this->assertDatabaseCount('patient_treatments', 1);
+    }
+
+    public function test_procedure_rejects_a_future_performed_at(): void
+    {
+        [$dentistUser, , $patient, $appointment] = $this->assignedContext();
+        $treatment = Treatment::factory()->create();
+        $payload = $this->procedurePayload($treatment, $appointment);
+        $payload['performed_at'] = CarbonImmutable::now(config('appointments.timezone'))
+            ->addDay()
+            ->format('Y-m-d\\TH:i');
+
+        $this->actingAs($dentistUser)
+            ->post(route('pacientes.tratamientos.store', $patient), $payload)
+            ->assertSessionHasErrors([
+                'performed_at' => 'El procedimiento no puede registrarse con una fecha y hora futura.',
+            ]);
+
+        $this->assertDatabaseCount('patient_treatments', 0);
     }
 
     public function test_procedure_rejects_a_cita_belonging_to_another_patient(): void
@@ -159,7 +178,9 @@ class PatientTreatmentManagementTest extends TestCase
         $this->assertSame(TreatmentPlanStatus::InProgress, $plan->fresh()->status);
 
         $secondProcedure = $this->procedurePayload($treatment, $secondAppointment, $planItem);
-        $secondProcedure['performed_at'] = '2030-02-12T11:00';
+        $secondProcedure['performed_at'] = CarbonImmutable::now(config('appointments.timezone'))
+            ->subMinutes(4)
+            ->format('Y-m-d\\TH:i');
 
         $this->actingAs($dentistUser)
             ->post(route('pacientes.tratamientos.store', $patient), $secondProcedure)
@@ -261,7 +282,9 @@ class PatientTreatmentManagementTest extends TestCase
             'treatment_id' => $treatment->id,
             'appointment_id' => $appointment?->id,
             'treatment_plan_item_id' => $planItem?->id,
-            'performed_at' => '2030-02-12T10:00',
+            'performed_at' => CarbonImmutable::now(config('appointments.timezone'))
+                ->subMinutes(5)
+                ->format('Y-m-d\\TH:i'),
             'procedure_description' => 'Se colocó resina en la pieza dental.',
             'clinical_notes' => 'Sin complicaciones durante el procedimiento.',
         ];

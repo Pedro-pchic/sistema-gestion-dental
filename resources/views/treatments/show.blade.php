@@ -1,6 +1,3 @@
-<div>
-    <!-- An unexamined life is not worth living. - Socrates -->
-</div>
 @extends('layouts.admin')
 
 @section('title', $treatment->name)
@@ -14,7 +11,7 @@
 @endsection
 
 @section('content')
-    <section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card p-5 sm:p-6">
         <dl class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div><dt class="text-sm font-medium text-stone-500">Precio vigente</dt><dd class="mt-1 text-lg font-semibold tabular-nums">Q {{ number_format((float) $treatment->price, 2) }}</dd></div>
             <div><dt class="text-sm font-medium text-stone-500">Duración estimada</dt><dd class="mt-1">{{ $treatment->estimated_duration_minutes }} minutos</dd></div>

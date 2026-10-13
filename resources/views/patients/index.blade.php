@@ -6,7 +6,7 @@
 
 @section('actions')
     @can('create', \App\Models\Patient::class)
-        <a href="{{ route('pacientes.create') }}" class="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">Registrar paciente</a>
+        <a href="{{ route('pacientes.create') }}" class="ui-button ui-button-primary">Registrar paciente</a>
     @endcan
 @endsection
 
@@ -25,9 +25,9 @@
         </div>
     </form>
 
-    <div class="mt-5 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <div class="mt-5 ui-card overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[48rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
                     <tr>
                         <th class="px-5 py-3">Paciente</th>

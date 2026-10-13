@@ -5,9 +5,9 @@
 @section('subheading', 'Abonos asociados a comprobantes internos')
 
 @section('content')
-    <section class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <section class="ui-card overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[64rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500"><tr><th class="px-5 py-3">Recibo</th><th class="px-5 py-3">Factura</th><th class="px-5 py-3">Paciente</th><th class="px-5 py-3">Fecha</th><th class="px-5 py-3">Método</th><th class="px-5 py-3">Estado</th><th class="px-5 py-3 text-right">Monto</th><th class="px-5 py-3"></th></tr></thead>
                 <tbody class="divide-y divide-stone-100">
                     @forelse ($payments as $payment)

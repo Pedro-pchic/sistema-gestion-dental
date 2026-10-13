@@ -5,11 +5,11 @@
 @section('subheading', 'Comprobantes administrativos por procedimientos realizados')
 
 @section('actions')
-    <a href="{{ route('facturacion.facturas.create') }}" class="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">Crear factura</a>
+    <a href="{{ route('facturacion.facturas.create') }}" class="ui-button ui-button-primary">Crear factura</a>
 @endsection
 
 @section('content')
-    <form method="GET" action="{{ route('facturacion.facturas.index') }}" class="grid gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200 sm:grid-cols-[1fr_14rem_auto] sm:items-end">
+    <form method="GET" action="{{ route('facturacion.facturas.index') }}" class="grid gap-4 ui-card p-5 sm:grid-cols-[1fr_14rem_auto] sm:items-end">
         <label class="flex flex-col gap-1 text-sm font-medium text-stone-700">Buscar paciente o número
             <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" class="rounded-md border border-stone-300 px-3 py-2 font-normal" placeholder="Nombre o DFA-...">
         </label>
@@ -21,12 +21,12 @@
                 @endforeach
             </select>
         </label>
-        <button type="submit" class="rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold hover:bg-stone-50">Filtrar</button>
+        <button type="submit" class="ui-button ui-button-secondary">Filtrar</button>
     </form>
 
-    <section class="mt-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+    <section class="mt-6 ui-card overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
+            <table class="w-full min-w-[54rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
                     <tr><th class="px-5 py-3">Número</th><th class="px-5 py-3">Paciente</th><th class="px-5 py-3">Fecha</th><th class="px-5 py-3">Estado</th><th class="px-5 py-3 text-right">Total</th><th class="px-5 py-3 text-right">Saldo</th><th class="px-5 py-3"></th></tr>
                 </thead>

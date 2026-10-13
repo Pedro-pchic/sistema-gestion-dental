@@ -2,6 +2,7 @@ const sidebar = document.querySelector('[data-admin-sidebar]');
 const sidebarOverlay = document.querySelector('[data-sidebar-overlay]');
 const sidebarOpenButton = document.querySelector('[data-sidebar-open]');
 const sidebarCloseButton = document.querySelector('[data-sidebar-close]');
+const sidebarToggleButton = document.querySelector('[data-sidebar-toggle]');
 
 if (sidebar && sidebarOverlay && sidebarOpenButton && sidebarCloseButton) {
     const desktopSidebar = window.matchMedia('(min-width: 64rem)');
@@ -60,6 +61,32 @@ if (sidebar && sidebarOverlay && sidebarOpenButton && sidebarCloseButton) {
 
     desktopSidebar.addEventListener('change', () => setSidebarOpen(false));
     setSidebarOpen(false);
+
+    if (sidebarToggleButton) {
+        const setSidebarCollapsed = (collapsed) => {
+            document.body.classList.toggle('sidebar-collapsed', collapsed);
+            sidebarToggleButton.setAttribute('aria-expanded', String(!collapsed));
+            sidebarToggleButton.setAttribute('aria-label', collapsed ? 'Expandir navegación' : 'Contraer navegación');
+            sidebarToggleButton.title = collapsed ? 'Expandir navegación' : 'Contraer navegación';
+        };
+
+        try {
+            setSidebarCollapsed(localStorage.getItem('dental-sidebar-collapsed') === 'true');
+        } catch {
+            setSidebarCollapsed(false);
+        }
+
+        sidebarToggleButton.addEventListener('click', () => {
+            const collapsed = !document.body.classList.contains('sidebar-collapsed');
+            setSidebarCollapsed(collapsed);
+
+            try {
+                localStorage.setItem('dental-sidebar-collapsed', String(collapsed));
+            } catch {
+                // The menu still works when browser storage is unavailable.
+            }
+        });
+    }
 }
 
 document.querySelectorAll('[data-purchase-form]').forEach((form) => {

@@ -1,6 +1,3 @@
-<div>
-    <!-- He who is contented is rich. - Laozi -->
-</div>
 @extends('layouts.admin')
 
 @section('title', 'Agenda de citas')
