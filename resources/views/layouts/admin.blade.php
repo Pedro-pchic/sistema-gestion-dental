@@ -43,6 +43,9 @@
                         <x-admin.nav-link icon="patients" :active="request()->routeIs('pacientes.*')" href="{{ route('pacientes.index') }}">Pacientes</x-admin.nav-link>
                         @can('viewAny', \App\Models\Appointment::class)
                             <x-admin.nav-link icon="calendar" :active="request()->routeIs('citas.*')" href="{{ route('citas.index') }}">Citas</x-admin.nav-link>
+                            @can('view-appointment-reminders')
+                                <x-admin.nav-link icon="calendar" :active="request()->routeIs('recordatorios.*')" href="{{ route('recordatorios.index') }}">Recordatorios</x-admin.nav-link>
+                            @endcan
                         @can('viewAny', \App\Models\Treatment::class)
                             <x-admin.nav-link icon="treatment" :active="request()->routeIs('tratamientos.*')" href="{{ route('tratamientos.index') }}">Tratamientos</x-admin.nav-link>
                         @endcan

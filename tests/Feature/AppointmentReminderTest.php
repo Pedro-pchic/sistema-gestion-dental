@@ -9,13 +9,17 @@ use App\Jobs\SendAppointmentReminder;
 use App\Models\Appointment;
 use App\Models\AppointmentReminder;
 use App\Models\Patient;
+use App\Models\Role;
+use App\Models\User;
 use App\Notifications\AppointmentReminderNotification;
 use App\Services\AppointmentReminderScheduler;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use LogicException;
 use Mockery;
 use RuntimeException;
+use Symfony\Component\Mailer\Exception\UnexpectedResponseException;
 use Tests\TestCase;
 
 class AppointmentReminderTest extends TestCase
@@ -191,6 +195,7 @@ class AppointmentReminderTest extends TestCase
 
         $appointment = $this->appointment($this->consentingPatient([
             'sms_reminders_enabled' => true,
+            'sms_reminders_consent_at' => now('UTC'),
             'phone' => '+502 5555-1234',
         ]));
         $reminder = $this->queuedReminder($appointment, 'sms');
@@ -237,6 +242,139 @@ class AppointmentReminderTest extends TestCase
 
         $this->assertSame(0, $this->app->make(AppointmentReminderScheduler::class)->dispatchDueReminders());
         $this->assertDatabaseCount('appointment_reminders', 0);
+    }
+
+    public function test_enabled_preference_without_current_consent_never_queues_or_sends(): void
+    {
+        $this->freezeTime();
+        config(['appointment_reminders.email.enabled' => true, 'mail.default' => 'array']);
+        Queue::fake([SendAppointmentReminder::class]);
+        $patient = $this->consentingPatient(['email_reminders_consent_at' => null]);
+        $appointment = $this->appointment($patient);
+        $this->appointment($this->consentingPatient(['email' => 'invalid-email']));
+        $this->appointment($this->consentingPatient(['email_reminders_revoked_at' => now('UTC')]));
+        $this->appointment($this->consentingPatient(['is_active' => false]));
+
+        $this->assertSame(0, $this->app->make(AppointmentReminderScheduler::class)->dispatchDueReminders());
+        Queue::assertNotPushed(SendAppointmentReminder::class);
+
+        $reminder = $this->queuedReminder($appointment);
+        (new SendAppointmentReminder((int) $reminder->getKey()))->handle();
+        $this->assertSame(AppointmentReminderStatus::Skipped, $reminder->fresh()->status);
+        $this->assertDatabaseCount('appointment_reminder_attempts', 0);
+    }
+
+    public function test_permanent_sms_failure_is_not_retried_or_exposed(): void
+    {
+        $this->freezeTime();
+        config([
+            'appointment_reminders.sms.enabled' => true,
+            'appointment_reminders.sms.driver' => 'test',
+        ]);
+        $smsSender = Mockery::mock(SmsSender::class);
+        $smsSender->shouldReceive('isAvailable')->andReturn(true);
+        $smsSender->shouldReceive('send')->once()->andThrow(new LogicException('Private provider response'));
+        $this->app->instance(SmsSender::class, $smsSender);
+
+        $appointment = $this->appointment($this->consentingPatient([
+            'sms_reminders_enabled' => true,
+            'sms_reminders_consent_at' => now('UTC'),
+            'phone' => '+502 5555-1234',
+        ]));
+        $reminder = $this->queuedReminder($appointment, 'sms');
+
+        (new SendAppointmentReminder((int) $reminder->getKey()))->handle();
+
+        $reminder->refresh();
+        $this->assertSame(AppointmentReminderStatus::Failed, $reminder->status);
+        $this->assertNull($reminder->next_attempt_at);
+        $this->assertStringNotContainsString('Private provider response', $reminder->last_error);
+        $this->assertSame(0, $this->app->make(AppointmentReminderScheduler::class)->dispatchDueReminders());
+    }
+
+    public function test_permanent_smtp_response_does_not_schedule_another_attempt(): void
+    {
+        $this->freezeTime();
+        config([
+            'appointment_reminders.sms.enabled' => true,
+            'appointment_reminders.sms.driver' => 'test',
+        ]);
+        $smsSender = Mockery::mock(SmsSender::class);
+        $smsSender->shouldReceive('isAvailable')->andReturn(true);
+        $smsSender->shouldReceive('send')->once()->andThrow(new UnexpectedResponseException('Private SMTP response', 550));
+        $this->app->instance(SmsSender::class, $smsSender);
+        $appointment = $this->appointment($this->consentingPatient([
+            'sms_reminders_enabled' => true,
+            'sms_reminders_consent_at' => now('UTC'),
+            'phone' => '+502 5555-1234',
+        ]));
+        $reminder = $this->queuedReminder($appointment, 'sms');
+
+        (new SendAppointmentReminder((int) $reminder->getKey()))->handle();
+
+        $this->assertSame(AppointmentReminderStatus::Failed, $reminder->fresh()->status);
+        $this->assertNull($reminder->fresh()->next_attempt_at);
+        $this->assertStringNotContainsString('Private SMTP response', $reminder->fresh()->last_error);
+    }
+
+    public function test_administrative_center_filters_and_paginates_without_exposing_errors_or_clinical_data(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-10-12 10:00:00', 'UTC'));
+        $role = Role::query()->firstOrCreate(['name' => Role::ADMINISTRATOR]);
+        $administrator = User::factory()->for($role)->create(['is_active' => true]);
+        $patient = $this->consentingPatient();
+        $appointment = $this->appointment($patient, AppointmentStatus::Scheduled, [
+            'planned_treatment' => 'Tratamiento reservado',
+        ]);
+        $reminder = $this->queuedReminder($appointment);
+        $reminder->update(['status' => AppointmentReminderStatus::Failed, 'last_error' => 'Private provider response']);
+        $this->queuedReminder($this->appointment($patient));
+        $otherChannel = $this->queuedReminder($this->appointment($patient), 'sms');
+        $otherChannel->update(['status' => AppointmentReminderStatus::Failed]);
+        $previousStart = CarbonImmutable::parse('2026-10-11 12:00:00', 'UTC');
+        $oldAppointment = $this->appointment($patient, AppointmentStatus::Scheduled, [
+            'starts_at' => $previousStart,
+            'ends_at' => $previousStart->addHour(),
+        ]);
+        $oldReminder = $this->queuedReminder($oldAppointment);
+        $oldReminder->update(['status' => AppointmentReminderStatus::Failed]);
+
+        $response = $this->actingAs($administrator)->get(route('recordatorios.index', [
+            'from' => '2026-10-12',
+            'to' => '2026-10-12',
+            'status' => 'failed',
+            'channel' => 'email',
+        ]))->assertOk()
+            ->assertSeeText('Falló la entrega.')
+            ->assertDontSeeText('Private provider response')
+            ->assertDontSeeText('Tratamiento reservado');
+        $this->assertSame(1, $response->viewData('reminders')->total());
+
+        foreach (range(1, 20) as $number) {
+            $this->queuedReminder($this->appointment($patient));
+        }
+        $response = $this->actingAs($administrator)->get(route('recordatorios.index'))->assertOk()
+            ->assertSee('page=2', false);
+        $this->assertSame(24, $response->viewData('reminders')->total());
+
+        $this->actingAs($administrator)->get(route('recordatorios.index', [
+            'from' => '2026-10-13', 'to' => '2026-10-12',
+        ]))->assertSessionHasErrors('to');
+        $this->actingAs($administrator)->get(route('recordatorios.index', ['channel' => 'unknown']))
+            ->assertSessionHasErrors('channel');
+    }
+
+    public function test_only_active_administrators_and_receptionists_can_view_reminders(): void
+    {
+        $administrator = User::factory()->for(Role::factory()->create(['name' => Role::ADMINISTRATOR]))->create(['is_active' => true]);
+        $receptionist = User::factory()->for(Role::factory()->create(['name' => Role::RECEPTIONIST]))->create(['is_active' => true]);
+        $dentist = User::factory()->for(Role::factory()->create(['name' => Role::DENTIST]))->create(['is_active' => true]);
+
+        $this->actingAs($administrator)->get(route('recordatorios.index'))->assertOk();
+        $this->actingAs($receptionist)->get(route('recordatorios.index'))->assertOk();
+        $this->actingAs($dentist)->get(route('recordatorios.index'))->assertForbidden();
+        $receptionist->update(['is_active' => false]);
+        $this->actingAs($receptionist)->get(route('recordatorios.index'))->assertRedirect();
     }
 
     private function consentingPatient(array $attributes = []): Patient

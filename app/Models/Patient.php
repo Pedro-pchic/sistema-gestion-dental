@@ -85,6 +85,29 @@ class Patient extends Model
         return $this->hasMany(Appointment::class);
     }
 
+    public function canReceiveAppointmentReminder(string $channel): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if ($channel === 'email') {
+            return $this->email_reminders_enabled
+                && $this->email_reminders_consent_at !== null
+                && $this->email_reminders_revoked_at === null
+                && is_string($this->email)
+                && filter_var($this->email, FILTER_VALIDATE_EMAIL) !== false;
+        }
+
+        return $channel === 'sms'
+            && $this->sms_reminders_enabled
+            && $this->sms_reminders_consent_at !== null
+            && $this->sms_reminders_revoked_at === null
+            && is_string($this->phone)
+            && preg_match('/^\+?[0-9][0-9\s().-]{5,38}[0-9]$/', $this->phone) === 1
+            && preg_match_all('/[0-9]/', $this->phone) >= 7;
+    }
+
     public function patientTreatments(): HasMany
     {
         return $this->hasMany(PatientTreatment::class);

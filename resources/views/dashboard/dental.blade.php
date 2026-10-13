@@ -159,6 +159,9 @@
             @if ($dashboardMetrics['notification_status']['email'] === 'Solo registro local')
                 <p class="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">El correo está en modo de registro local; no se entrega a pacientes.</p>
             @endif
+            @can('view-appointment-reminders')
+                <a href="{{ route('recordatorios.index') }}" class="mt-4 inline-flex font-semibold text-brand-700 underline underline-offset-2">Ver recordatorios</a>
+            @endcan
         </article>
     </section>
 

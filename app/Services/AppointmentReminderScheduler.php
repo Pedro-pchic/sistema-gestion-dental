@@ -50,12 +50,12 @@ class AppointmentReminderScheduler
                 foreach ($appointments as $appointment) {
                     $patient = $appointment->patient;
 
-                    if (! $patient instanceof Patient || ! $patient->is_active) {
+                    if (! $patient instanceof Patient) {
                         continue;
                     }
 
                     foreach ($channels as $channel) {
-                        if (! $this->patientCanReceive($patient, $channel)) {
+                        if (! $patient->canReceiveAppointmentReminder($channel)) {
                             continue;
                         }
 
@@ -228,24 +228,6 @@ class AppointmentReminderScheduler
         }
 
         return $channels;
-    }
-
-    private function patientCanReceive(Patient $patient, string $channel): bool
-    {
-        if ($channel === 'email') {
-            return $patient->email_reminders_enabled
-                && is_string($patient->email)
-                && filter_var($patient->email, FILTER_VALIDATE_EMAIL) !== false;
-        }
-
-        return $patient->sms_reminders_enabled && $this->hasValidPhone($patient->phone);
-    }
-
-    private function hasValidPhone(?string $phone): bool
-    {
-        return is_string($phone)
-            && preg_match('/^\+?[0-9][0-9\s().-]{5,38}[0-9]$/', $phone) === 1
-            && preg_match_all('/[0-9]/', $phone) >= 7;
     }
 
     private function nextAttemptAt(int $attempts, Carbon $now): ?Carbon

@@ -73,6 +73,11 @@ class AppServiceProvider extends ServiceProvider
             [Role::ADMINISTRATOR, Role::DENTIST, Role::RECEPTIONIST],
             true,
         ));
+        Gate::define('view-appointment-reminders', fn (User $user): bool => $user->is_active && in_array(
+            $user->role?->name,
+            [Role::ADMINISTRATOR, Role::RECEPTIONIST],
+            true,
+        ));
 
         Gate::define('manage-users', fn (User $user): bool => $user->role?->name === Role::ADMINISTRATOR
         );

@@ -106,6 +106,7 @@ class DentalDashboardTest extends TestCase
         $this->assertCount(1, $metrics['recent_activity']);
         $response->assertSeeText('Ingresos registrados')
             ->assertSeeText('Saldos pendientes')
+            ->assertSeeText('Ver recordatorios')
             ->assertSeeText('Cita programada')
             ->assertDontSeeText('Confidencial y no visible en el panel.');
     }
@@ -124,6 +125,7 @@ class DentalDashboardTest extends TestCase
             ->assertViewIs('dashboard.dental')
             ->assertSeeText('Cobros pendientes')
             ->assertSeeText('Paciente Cobro')
+            ->assertSeeText('Ver recordatorios')
             ->assertDontSeeText('Ingresos registrados');
         $metrics = $response->viewData('dashboardMetrics');
 
@@ -161,6 +163,7 @@ class DentalDashboardTest extends TestCase
             ->assertSeeText('Paciente Asignado')
             ->assertDontSeeText('Paciente Ajeno')
             ->assertDontSeeText('Ingresos registrados')
+            ->assertDontSeeText('Ver recordatorios')
             ->assertDontSeeText('Cobros pendientes');
         $metrics = $response->viewData('dashboardMetrics');
 

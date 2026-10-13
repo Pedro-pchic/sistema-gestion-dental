@@ -13,6 +13,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use LogicException;
+use RuntimeException;
+use Symfony\Component\Mailer\Exception\UnexpectedResponseException;
 use Throwable;
 
 class SendAppointmentReminder implements ShouldQueue
@@ -44,7 +47,6 @@ class SendAppointmentReminder implements ShouldQueue
             || (int) $appointment->patient_id !== (int) $reminder->patient_id
             || ! $appointment->starts_at->equalTo($reminder->appointment_starts_at)
             || ! in_array($appointment->status, [AppointmentStatus::Scheduled, AppointmentStatus::Confirmed], true)
-            || ! $patient->is_active
             || ! $this->patientCanReceive($patient, $attempt['channel'])
             || $appointment->starts_at->lessThanOrEqualTo(now('UTC'))) {
             $this->completeAsSkipped($attempt['reminder_id'], $attempt['attempt_id']);
@@ -83,7 +85,6 @@ class SendAppointmentReminder implements ShouldQueue
                 || $appointment->patient_id !== $reminder->patient_id
                 || ! $appointment->starts_at->equalTo($reminder->appointment_starts_at)
                 || ! in_array($appointment->status, [AppointmentStatus::Scheduled, AppointmentStatus::Confirmed], true)
-                || ! $patient->is_active
                 || ! $this->patientCanReceive($patient, $reminder->channel)
                 || $appointment->starts_at->lessThanOrEqualTo(now('UTC'))) {
                 $reminder->update(['status' => AppointmentReminderStatus::Skipped]);
@@ -118,23 +119,13 @@ class SendAppointmentReminder implements ShouldQueue
     {
         if ($channel === 'email') {
             return (bool) config('appointment_reminders.email.enabled')
-                && $patient->email_reminders_enabled
-                && is_string($patient->email)
-                && filter_var($patient->email, FILTER_VALIDATE_EMAIL) !== false;
+                && $patient->canReceiveAppointmentReminder('email');
         }
 
         return $channel === 'sms'
             && (bool) config('appointment_reminders.sms.enabled')
             && config('appointment_reminders.sms.driver') !== 'disabled'
-            && $patient->sms_reminders_enabled
-            && $this->hasValidPhone($patient->phone);
-    }
-
-    private function hasValidPhone(?string $phone): bool
-    {
-        return is_string($phone)
-            && preg_match('/^\+?[0-9][0-9\s().-]{5,38}[0-9]$/', $phone) === 1
-            && preg_match_all('/[0-9]/', $phone) >= 7;
+            && $patient->canReceiveAppointmentReminder('sms');
     }
 
     private function completeAsSent(int $reminderId, int $attemptId): void
@@ -192,7 +183,10 @@ class SendAppointmentReminder implements ShouldQueue
         $maxAttempts = (int) config('appointment_reminders.retry.max_attempts', 3);
         $delays = config('appointment_reminders.retry.delays_minutes', [15, 60]);
         $delayIndex = min(max($reminder->attempts - 1, 0), count($delays) - 1);
-        $nextAttemptAt = $reminder->attempts < $maxAttempts
+        $isRecoverable = ! $exception instanceof LogicException
+            && (! $exception instanceof UnexpectedResponseException || $exception->getCode() < 500)
+            && $exception instanceof RuntimeException;
+        $nextAttemptAt = $isRecoverable && $reminder->attempts < $maxAttempts
             ? $now->copy()->addMinutes((int) ($delays[$delayIndex] ?? 60))
             : null;
 

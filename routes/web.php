@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AppointmentReminderController;
 use App\Http\Controllers\AppointmentTransitionController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
@@ -32,6 +33,10 @@ if ($isTesting) {
 }
 
 Route::middleware(['auth', 'active'])->group(function () use ($isTesting): void {
+    Route::get('/recordatorios', AppointmentReminderController::class)
+        ->middleware('can:view-appointment-reminders')
+        ->name('recordatorios.index');
+
     if (! $isTesting) {
         Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
         Route::get('/dashboard', DashboardController::class)
