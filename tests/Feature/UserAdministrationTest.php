@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class UserAdministrationTest extends TestCase
@@ -86,6 +87,70 @@ class UserAdministrationTest extends TestCase
             'id' => $user->id,
             'is_active' => false,
         ]);
+    }
+
+    public function test_last_active_administrator_cannot_be_demoted_or_deactivated(): void
+    {
+        $administrator = $this->administrator();
+        $dentistRole = Role::factory()->create(['name' => Role::DENTIST]);
+
+        $this->actingAs($administrator)
+            ->put(route('usuarios.update', $administrator), [
+                'name' => $administrator->name,
+                'email' => $administrator->email,
+                'role_id' => $dentistRole->id,
+                'is_active' => true,
+            ])
+            ->assertSessionHasErrors('is_active');
+
+        $this->actingAs($administrator)
+            ->patch(route('usuarios.status', $administrator))
+            ->assertSessionHasErrors('is_active');
+
+        $this->assertSame(Role::ADMINISTRATOR, $administrator->fresh()->role->name);
+        $this->assertTrue($administrator->is_active);
+
+        $this->actingAs($administrator)
+            ->put(route('usuarios.update', $administrator), [
+                'name' => 'Administradora Actualizada',
+                'email' => $administrator->email,
+                'role_id' => (string) $administrator->role_id,
+                'is_active' => '1',
+            ])
+            ->assertRedirectToRoute('usuarios.index');
+
+        $secondAdministrator = User::factory()->for($administrator->role)->create(['is_active' => true]);
+        $this->actingAs($administrator)
+            ->patch(route('usuarios.status', $secondAdministrator))
+            ->assertRedirectToRoute('usuarios.index');
+
+        $this->assertFalse($secondAdministrator->fresh()->is_active);
+    }
+
+    public function test_role_change_is_audited_without_personal_data_or_password(): void
+    {
+        $administrator = $this->administrator();
+        $dentistRole = Role::factory()->create(['name' => Role::DENTIST]);
+        $managedUser = User::factory()->create();
+        Log::spy();
+
+        $this->actingAs($administrator)
+            ->put(route('usuarios.update', $managedUser), [
+                'name' => $managedUser->name,
+                'email' => $managedUser->email,
+                'role_id' => $dentistRole->id,
+                'is_active' => true,
+            ])
+            ->assertRedirectToRoute('usuarios.index');
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(fn (string $message, array $context): bool => $message === 'audit.user.updated'
+                && $context['actor_id'] === $administrator->id
+                && $context['entity_id'] === $managedUser->id
+                && $context['role_id_after'] === $dentistRole->id
+                && ! array_key_exists('password', $context)
+                && ! array_key_exists('email', $context))
+            ->once();
     }
 
     private function administrator(): User

@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class PatientController extends Controller
@@ -82,6 +83,13 @@ class PatientController extends Controller
 
             return $patient;
         });
+
+        Log::info('audit.patient.created', [
+            'actor_id' => $request->user()->id,
+            'entity' => 'patient',
+            'entity_id' => $patient->id,
+            'result' => 'success',
+        ]);
 
         return redirect()
             ->route('pacientes.show', $patient)
@@ -163,6 +171,15 @@ class PatientController extends Controller
             }
         });
 
+        Log::info('audit.patient.updated', [
+            'actor_id' => $request->user()->id,
+            'entity' => 'patient',
+            'entity_id' => $patient->id,
+            'changed_fields' => array_keys($patient->getChanges()),
+            'dentist_assignments_submitted' => $shouldSyncDentists,
+            'result' => 'success',
+        ]);
+
         return redirect()
             ->route('pacientes.show', $patient)
             ->with('status', 'Paciente actualizado correctamente.');
@@ -171,20 +188,35 @@ class PatientController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Patient $patient): RedirectResponse
+    public function destroy(Request $request, Patient $patient): RedirectResponse
     {
         Gate::authorize('delete', $patient);
         $patient->delete();
+
+        Log::info('audit.patient.deleted', [
+            'actor_id' => $request->user()->id,
+            'entity' => 'patient',
+            'entity_id' => $patient->id,
+            'result' => 'success',
+        ]);
 
         return redirect()
             ->route('pacientes.index')
             ->with('status', 'Paciente eliminado lógicamente.');
     }
 
-    public function toggleStatus(Patient $patient): RedirectResponse
+    public function toggleStatus(Request $request, Patient $patient): RedirectResponse
     {
         Gate::authorize('update', $patient);
         $patient->update(['is_active' => ! $patient->is_active]);
+
+        Log::info('audit.patient.status_changed', [
+            'actor_id' => $request->user()->id,
+            'entity' => 'patient',
+            'entity_id' => $patient->id,
+            'is_active' => $patient->is_active,
+            'result' => 'success',
+        ]);
 
         return back()->with('status', 'Estado del paciente actualizado.');
     }

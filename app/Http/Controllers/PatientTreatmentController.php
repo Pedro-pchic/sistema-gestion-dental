@@ -39,6 +39,7 @@ class PatientTreatmentController extends Controller
         $planItems = TreatmentPlanItem::query()
             ->whereHas('plan', fn (Builder $query): Builder => $query
                 ->where('patient_id', $patient->id)
+                ->where('dentist_id', $dentist->id)
                 ->whereIn('status', [TreatmentPlanStatus::Pending->value, TreatmentPlanStatus::InProgress->value]))
             ->whereIn('status', [TreatmentPlanStatus::Pending->value, TreatmentPlanStatus::InProgress->value])
             ->with(['plan:id,title,patient_id', 'treatment:id,name'])
@@ -90,6 +91,7 @@ class PatientTreatmentController extends Controller
 
                     abort_unless(
                         $planItem->plan->patient_id === $patient->id
+                            && $planItem->plan->dentist_id === $dentist->id
                             && in_array($planItem->plan->status, [TreatmentPlanStatus::Pending, TreatmentPlanStatus::InProgress], true)
                             && $planItem->treatment_id === $treatment->id
                             && in_array($planItem->status, [TreatmentPlanStatus::Pending, TreatmentPlanStatus::InProgress], true)

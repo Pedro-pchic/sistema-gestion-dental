@@ -101,6 +101,7 @@ class StorePatientTreatmentRequest extends FormRequest
                 if (
                     $planItem === null
                     || $planItem->plan->patient_id !== $patient->id
+                    || $planItem->plan->dentist_id !== $dentistId
                     || ! in_array($planItem->plan->status, [TreatmentPlanStatus::Pending, TreatmentPlanStatus::InProgress], true)
                     || in_array($planItem->status, [TreatmentPlanStatus::Completed, TreatmentPlanStatus::Cancelled], true)
                     || $planItem->patientTreatments()->count() >= $planItem->quantity

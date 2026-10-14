@@ -6,7 +6,8 @@ use App\Enums\DentalInvoiceStatus;
 use App\Enums\DentalPaymentStatus;
 use App\Models\DentalInvoice;
 use App\Models\DentalPayment;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\DentalFinancialReportService;
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
@@ -15,7 +16,7 @@ use Illuminate\View\View;
 
 class DentalFinancialReportController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, DentalFinancialReportService $financialReport): View
     {
         Gate::authorize('view-dental-reports');
 
@@ -47,22 +48,20 @@ class DentalFinancialReportController extends Controller
             ->where('payment_date', '>=', $from)
             ->where('payment_date', '<', $toExclusive);
 
-        $issuedInvoiceCents = $this->sumCents(clone $issuedInvoices, 'total');
-        $receivedCents = $this->sumCents(clone $payments, 'amount');
+        $summary = $financialReport->summary($from, $to);
+        $issuedInvoiceCents = Money::toCents($summary['issued_total']);
+        $receivedCents = Money::toCents($summary['received_total']);
         $pendingInvoices = DentalInvoice::query()
             ->whereIn('status', [DentalInvoiceStatus::Issued->value, DentalInvoiceStatus::PartiallyPaid->value])
+            ->where('balance_due', '>', 0)
             ->where('issue_date', '>=', $from)
             ->where('issue_date', '<', $toExclusive);
-        $pendingCents = $this->sumCents(clone $pendingInvoices, 'balance_due');
-        $cancelledInvoices = DentalInvoice::query()
-            ->where('status', DentalInvoiceStatus::Cancelled->value)
-            ->whereDate('cancelled_at', '>=', $from)
-            ->whereDate('cancelled_at', '<=', $to)
-            ->count();
+        $pendingCents = Money::toCents($summary['pending_balance']);
+        $cancelledInvoices = $summary['cancelled_invoice_count'];
 
         $pendingByPatient = (clone $pendingInvoices)
             ->select('patient_id')
-            ->selectRaw('CAST(ROUND(SUM(balance_due) * 100, 0) AS INTEGER) AS balance_cents')
+            ->selectRaw('CAST(ROUND(SUM(balance_due) * 100, 0) AS BIGINT) AS balance_cents')
             ->with('patient:id,first_name,last_name,record_number')
             ->groupBy('patient_id')
             ->havingRaw('SUM(balance_due) > 0')
@@ -70,12 +69,7 @@ class DentalFinancialReportController extends Controller
             ->limit(30)
             ->get();
 
-        $revenueByDay = (clone $payments)
-            ->select('payment_date')
-            ->selectRaw('CAST(ROUND(SUM(amount) * 100, 0) AS INTEGER) AS amount_cents')
-            ->groupBy('payment_date')
-            ->orderBy('payment_date')
-            ->get();
+        $revenueByDay = $financialReport->revenueByDay($from, $to);
 
         return view('dental-reports.index', compact(
             'from',
@@ -90,12 +84,5 @@ class DentalFinancialReportController extends Controller
             'pendingByPatient',
             'revenueByDay',
         ));
-    }
-
-    private function sumCents(Builder $query, string $column): int
-    {
-        return (int) ($query
-            ->selectRaw('COALESCE(CAST(ROUND(SUM('.$column.') * 100, 0) AS INTEGER), 0) AS cents')
-            ->value('cents') ?? 0);
     }
 }

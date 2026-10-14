@@ -156,6 +156,29 @@ class PatientTreatmentManagementTest extends TestCase
         ]);
     }
 
+    public function test_assigned_dentist_cannot_use_a_colleague_plan_item(): void
+    {
+        [$dentistUser, , $patient, $appointment] = $this->assignedContext();
+        $otherDentistUser = $this->userWithRole(Role::DENTIST);
+        $otherDentist = Dentist::factory()->for($otherDentistUser, 'user')->create();
+        $patient->dentists()->attach($otherDentist);
+        $treatment = Treatment::factory()->create();
+        $plan = TreatmentPlan::factory()->for($patient)->for($otherDentist)->create();
+        $planItem = TreatmentPlanItem::factory()->for($plan, 'plan')->for($treatment)->create();
+
+        $this->actingAs($dentistUser)
+            ->get(route('pacientes.tratamientos.create', $patient))
+            ->assertOk()
+            ->assertViewHas('planItems', fn ($items): bool => $items->isEmpty());
+
+        $this->actingAs($dentistUser)
+            ->post(route('pacientes.tratamientos.store', $patient), $this->procedurePayload($treatment, $appointment, $planItem))
+            ->assertSessionHasErrors('treatment_plan_item_id');
+
+        $this->assertDatabaseCount('patient_treatments', 0);
+        $this->assertSame(TreatmentPlanStatus::Pending, $planItem->fresh()->status);
+    }
+
     public function test_planned_item_quantity_requires_each_procedure_before_completion(): void
     {
         [$dentistUser, $dentist, $patient, $firstAppointment] = $this->assignedContext();

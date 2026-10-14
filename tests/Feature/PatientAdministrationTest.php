@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -104,6 +105,29 @@ class PatientAdministrationTest extends TestCase
             ]);
 
         $this->assertDatabaseCount('patients', 0);
+    }
+
+    public function test_patient_creation_is_audited_without_personal_or_clinical_data(): void
+    {
+        $receptionist = $this->userWithRole(Role::RECEPTIONIST);
+        Log::spy();
+
+        $this->actingAs($receptionist)
+            ->post(route('pacientes.store'), [
+                'first_name' => 'Paciente',
+                'last_name' => 'Privado',
+                'email' => 'privado@example.test',
+            ])
+            ->assertRedirect();
+
+        $patient = Patient::query()->where('email', 'privado@example.test')->firstOrFail();
+        Log::shouldHaveReceived('info')
+            ->withArgs(fn (string $message, array $context): bool => $message === 'audit.patient.created'
+                && $context['actor_id'] === $receptionist->id
+                && $context['entity_id'] === $patient->id
+                && ! array_key_exists('email', $context)
+                && ! array_key_exists('clinical_notes', $context))
+            ->once();
     }
 
     #[DataProvider('invalidPatientFields')]
