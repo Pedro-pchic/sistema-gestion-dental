@@ -6,6 +6,7 @@ use App\Enums\AppointmentStatus;
 use App\Http\Requests\RescheduleAppointmentRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Models\Appointment;
+use App\Models\AppointmentRequest;
 use App\Models\Dentist;
 use App\Models\Patient;
 use App\Models\Role;
@@ -188,6 +189,9 @@ class AppointmentController extends Controller
                     ? $focusDate->addWeek()->toDateString()
                     : $focusDate->addMonthNoOverflow()->toDateString()),
             'statusOptions' => AppointmentStatus::cases(),
+            'pendingPublicRequests' => $user->can('create', Appointment::class)
+                ? AppointmentRequest::query()->where('status', 'pending')->count()
+                : null,
         ]);
     }
 

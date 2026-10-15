@@ -22,4 +22,8 @@
             Tratamiento activo
         </label>
     </div>
+    <div class="sm:col-span-2 flex flex-wrap gap-6">
+        <label class="flex items-center gap-2 text-sm font-medium"><input type="hidden" name="is_public" value="0"><input type="checkbox" name="is_public" value="1" @checked((bool) old('is_public', $treatment->is_public ?? false))> Publicar tratamiento en la web</label>
+        <label class="flex items-center gap-2 text-sm font-medium"><input type="hidden" name="show_public_price" value="0"><input type="checkbox" name="show_public_price" value="1" @checked((bool) old('show_public_price', $treatment->show_public_price ?? false))> Publicar precio</label>
+    </div>
 </div>

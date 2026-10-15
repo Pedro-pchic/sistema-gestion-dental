@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'license_number', 'specialty', 'is_active'])]
+#[Fillable(['user_id', 'license_number', 'specialty', 'is_active', 'is_public', 'public_photo_path', 'public_bio'])]
 class Dentist extends Model
 {
     /** @use HasFactory<DentistFactory> */
@@ -20,6 +20,7 @@ class Dentist extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_public' => 'boolean',
         ];
     }
 

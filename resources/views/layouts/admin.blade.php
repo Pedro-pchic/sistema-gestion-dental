@@ -43,6 +43,9 @@
                         <x-admin.nav-link icon="patients" :active="request()->routeIs('pacientes.*')" href="{{ route('pacientes.index') }}">Pacientes</x-admin.nav-link>
                         @can('viewAny', \App\Models\Appointment::class)
                             <x-admin.nav-link icon="calendar" :active="request()->routeIs('citas.*')" href="{{ route('citas.index') }}">Citas</x-admin.nav-link>
+                            @can('create', \App\Models\Appointment::class)
+                                <x-admin.nav-link icon="calendar" :active="request()->routeIs('solicitudes-cita.*')" href="{{ route('solicitudes-cita.index') }}">Solicitudes web</x-admin.nav-link>
+                            @endcan
                             @can('view-appointment-reminders')
                                 <x-admin.nav-link icon="calendar" :active="request()->routeIs('recordatorios.*')" href="{{ route('recordatorios.index') }}">Recordatorios</x-admin.nav-link>
                             @endcan
@@ -72,6 +75,9 @@
                     <p class="px-3 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-stone-500">Administración</p>
                     <div class="mt-2 flex flex-col gap-1">
                         <x-admin.nav-link icon="users" :active="request()->routeIs('usuarios.*')" href="{{ route('usuarios.index') }}">Usuarios</x-admin.nav-link>
+                        <x-admin.nav-link :active="request()->routeIs('anuncios.*')" href="{{ route('anuncios.index') }}">Anuncios</x-admin.nav-link>
+                        <x-admin.nav-link :active="request()->routeIs('configuracion-publica.*')" href="{{ route('configuracion-publica.edit') }}">Sitio público</x-admin.nav-link>
+                        <x-admin.nav-link :active="request()->routeIs('odontologos-publicos.*')" href="{{ route('odontologos-publicos.index') }}">Equipo público</x-admin.nav-link>
                     </div>
                 </div>
             @endcan

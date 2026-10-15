@@ -33,6 +33,8 @@ class UpdateTreatmentRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'estimated_duration_minutes' => ['required', 'integer', 'min:1', 'max:32767'],
             'is_active' => ['required', 'boolean'],
+            'is_public' => ['sometimes', 'boolean'],
+            'show_public_price' => ['sometimes', 'boolean'],
         ];
     }
 

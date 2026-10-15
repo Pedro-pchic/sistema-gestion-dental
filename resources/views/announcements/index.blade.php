@@ -1,0 +1,7 @@
+@extends('layouts.admin')
+@section('title', 'Anuncios')
+@section('heading', 'Anuncios')
+@section('actions')<a href="{{ route('anuncios.create') }}" class="ui-button ui-button-primary">Nuevo anuncio</a>@endsection
+@section('content')
+<div class="ui-card overflow-x-auto p-5"><table class="w-full min-w-[36rem] text-left text-sm"><thead><tr class="border-b text-slate-500"><th class="p-3">Título</th><th class="p-3">Vigencia</th><th class="p-3">Orden</th><th class="p-3">Estado</th><th class="p-3">Acciones</th></tr></thead><tbody>@forelse ($announcements as $announcement)<tr class="border-b border-slate-100"><td class="p-3 font-semibold">{{ $announcement->title }}</td><td class="p-3">{{ $announcement->published_on?->format('d/m/Y') ?? 'Sin fecha' }} — {{ $announcement->expires_on?->format('d/m/Y') ?? 'Sin fin' }}</td><td class="p-3">{{ $announcement->sort_order }}</td><td class="p-3">{{ $announcement->is_published ? 'Publicado' : 'Borrador' }}</td><td class="flex gap-3 p-3"><a class="text-brand-700" href="{{ route('anuncios.edit', $announcement) }}">Editar</a><form method="POST" action="{{ route('anuncios.toggle', $announcement) }}">@csrf @method('PATCH')<button class="font-semibold text-brand-700">{{ $announcement->is_published ? 'Despublicar' : 'Publicar' }}</button></form></td></tr>@empty<tr><td colspan="5" class="p-5">No hay anuncios.</td></tr>@endforelse</tbody></table><div class="mt-5">{{ $announcements->links() }}</div></div>
+@endsection

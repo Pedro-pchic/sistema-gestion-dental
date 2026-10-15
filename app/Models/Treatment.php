@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'description', 'price', 'estimated_duration_minutes', 'is_active'])]
+#[Fillable(['name', 'description', 'price', 'estimated_duration_minutes', 'is_active', 'is_public', 'show_public_price'])]
 class Treatment extends Model
 {
     /** @use HasFactory<TreatmentFactory> */
@@ -20,6 +20,8 @@ class Treatment extends Model
             'price' => 'decimal:2',
             'estimated_duration_minutes' => 'integer',
             'is_active' => 'boolean',
+            'is_public' => 'boolean',
+            'show_public_price' => 'boolean',
         ];
     }
 

@@ -1,17 +1,23 @@
 <?php
 
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AppointmentReminderController;
+use App\Http\Controllers\AppointmentRequestController;
 use App\Http\Controllers\AppointmentTransitionController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DentalFinancialReportController;
 use App\Http\Controllers\DentalInvoiceController;
 use App\Http\Controllers\DentalPaymentController;
+use App\Http\Controllers\DentistPublicProfileController;
 use App\Http\Controllers\PatientAppointmentHistoryController;
 use App\Http\Controllers\PatientClinicalHistoryController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientTreatmentController;
+use App\Http\Controllers\PublicAppointmentRequestController;
+use App\Http\Controllers\PublicSiteController;
+use App\Http\Controllers\PublicSiteSettingController;
 use App\Http\Controllers\TreatmentController;
 use App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\UserController;
@@ -19,10 +25,16 @@ use Illuminate\Support\Facades\Route;
 
 $isTesting = app()->environment('testing');
 
+Route::get('/clinica', PublicSiteController::class)->name('public.home');
+Route::get('/clinica/horarios', [PublicAppointmentRequestController::class, 'slots'])
+    ->middleware('throttle:60,1')->name('public.slots');
+Route::post('/clinica/citas', [PublicAppointmentRequestController::class, 'store'])
+    ->middleware('throttle:5,1')->name('public.appointments.store');
+
 if ($isTesting) {
     require __DIR__.'/legacy.php';
 } else {
-    Route::redirect('/', '/dashboard')->name('inicio');
+    Route::get('/', PublicSiteController::class)->name('inicio');
 
     Route::middleware('guest')->group(function (): void {
         Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -33,6 +45,17 @@ if ($isTesting) {
 }
 
 Route::middleware(['auth', 'active'])->group(function () use ($isTesting): void {
+    Route::get('/solicitudes-cita', [AppointmentRequestController::class, 'index'])->name('solicitudes-cita.index');
+    Route::get('/solicitudes-cita/{appointmentRequest}', [AppointmentRequestController::class, 'show'])->name('solicitudes-cita.show');
+    Route::post('/solicitudes-cita/{appointmentRequest}/confirmar', [AppointmentRequestController::class, 'confirm'])->name('solicitudes-cita.confirm');
+    Route::post('/solicitudes-cita/{appointmentRequest}/rechazar', [AppointmentRequestController::class, 'reject'])->name('solicitudes-cita.reject');
+
+    Route::resource('anuncios', AnnouncementController::class)->parameters(['anuncios' => 'announcement'])->only(['index', 'create', 'store', 'edit', 'update']);
+    Route::patch('/anuncios/{announcement}/publicacion', [AnnouncementController::class, 'toggle'])->name('anuncios.toggle');
+    Route::get('/configuracion-publica', [PublicSiteSettingController::class, 'edit'])->name('configuracion-publica.edit');
+    Route::put('/configuracion-publica', [PublicSiteSettingController::class, 'update'])->name('configuracion-publica.update');
+    Route::get('/odontologos-publicos', [DentistPublicProfileController::class, 'index'])->name('odontologos-publicos.index');
+    Route::put('/odontologos-publicos/{dentist}', [DentistPublicProfileController::class, 'update'])->name('odontologos-publicos.update');
     Route::get('/recordatorios', AppointmentReminderController::class)
         ->middleware('can:view-appointment-reminders')
         ->name('recordatorios.index');

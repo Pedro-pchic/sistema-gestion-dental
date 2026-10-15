@@ -255,6 +255,16 @@ class AppointmentScheduler
         }
     }
 
+    public function isAvailable(int $dentistId, CarbonImmutable $startsAt, CarbonImmutable $endsAt): bool
+    {
+        return ! Appointment::query()
+            ->where('dentist_id', $dentistId)
+            ->whereIn('status', AppointmentStatus::reservableValues())
+            ->where('starts_at', '<', $endsAt)
+            ->where('ends_at', '>', $startsAt)
+            ->exists();
+    }
+
     private function assertValidFutureInterval(CarbonImmutable $startsAt, CarbonImmutable $endsAt): void
     {
         if ($startsAt->lessThanOrEqualTo(now('UTC'))) {

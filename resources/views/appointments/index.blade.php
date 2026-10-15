@@ -6,6 +6,7 @@
 
 @section('actions')
     @can('create', \App\Models\Appointment::class)
+        <a href="{{ route('solicitudes-cita.index') }}" class="ui-button ui-button-secondary">Solicitudes web <span class="ml-1 rounded-full bg-brand-100 px-2 py-0.5 text-brand-900">{{ $pendingPublicRequests }}</span></a>
         <a href="{{ route('citas.create') }}" class="ui-button ui-button-primary">Programar cita</a>
     @endcan
 @endsection

@@ -1,3 +1,5 @@
+import './public-booking.js';
+
 const sidebar = document.querySelector('[data-admin-sidebar]');
 const sidebarOverlay = document.querySelector('[data-sidebar-overlay]');
 const sidebarOpenButton = document.querySelector('[data-sidebar-open]');
