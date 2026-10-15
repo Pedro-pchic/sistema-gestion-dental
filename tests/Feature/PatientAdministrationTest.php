@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\Dentist;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -110,7 +110,6 @@ class PatientAdministrationTest extends TestCase
     public function test_patient_creation_is_audited_without_personal_or_clinical_data(): void
     {
         $receptionist = $this->userWithRole(Role::RECEPTIONIST);
-        Log::spy();
 
         $this->actingAs($receptionist)
             ->post(route('pacientes.store'), [
@@ -121,13 +120,9 @@ class PatientAdministrationTest extends TestCase
             ->assertRedirect();
 
         $patient = Patient::query()->where('email', 'privado@example.test')->firstOrFail();
-        Log::shouldHaveReceived('info')
-            ->withArgs(fn (string $message, array $context): bool => $message === 'audit.patient.created'
-                && $context['actor_id'] === $receptionist->id
-                && $context['entity_id'] === $patient->id
-                && ! array_key_exists('email', $context)
-                && ! array_key_exists('clinical_notes', $context))
-            ->once();
+        $log = AuditLog::query()->where('module', 'patients')->where('action', 'created')->where('auditable_id', $patient->id)->firstOrFail();
+        $this->assertSame($receptionist->id, $log->actor_user_id);
+        $this->assertStringNotContainsString('privado@example.test', json_encode($log->metadata));
     }
 
     #[DataProvider('invalidPatientFields')]

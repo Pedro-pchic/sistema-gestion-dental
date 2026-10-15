@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AppointmentStatus;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
+use App\Models\AuditLog;
 use App\Models\Dentist;
 use App\Models\Patient;
 use App\Models\Role;
@@ -13,7 +14,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class PatientController extends Controller
@@ -83,13 +83,6 @@ class PatientController extends Controller
 
             return $patient;
         });
-
-        Log::info('audit.patient.created', [
-            'actor_id' => $request->user()->id,
-            'entity' => 'patient',
-            'entity_id' => $patient->id,
-            'result' => 'success',
-        ]);
 
         return redirect()
             ->route('pacientes.show', $patient)
@@ -167,18 +160,12 @@ class PatientController extends Controller
             $patient->update($data);
 
             if ($shouldSyncDentists) {
-                $patient->dentists()->sync($dentistIds);
+                $changes = $patient->dentists()->sync($dentistIds);
+                if ($changes['attached'] !== [] || $changes['detached'] !== []) {
+                    AuditLog::record('patients', 'dentist_assignments_changed', $patient, metadata: ['dentist_ids_added' => $changes['attached'], 'dentist_ids_revoked' => $changes['detached']]);
+                }
             }
         });
-
-        Log::info('audit.patient.updated', [
-            'actor_id' => $request->user()->id,
-            'entity' => 'patient',
-            'entity_id' => $patient->id,
-            'changed_fields' => array_keys($patient->getChanges()),
-            'dentist_assignments_submitted' => $shouldSyncDentists,
-            'result' => 'success',
-        ]);
 
         return redirect()
             ->route('pacientes.show', $patient)
@@ -193,13 +180,6 @@ class PatientController extends Controller
         Gate::authorize('delete', $patient);
         $patient->delete();
 
-        Log::info('audit.patient.deleted', [
-            'actor_id' => $request->user()->id,
-            'entity' => 'patient',
-            'entity_id' => $patient->id,
-            'result' => 'success',
-        ]);
-
         return redirect()
             ->route('pacientes.index')
             ->with('status', 'Paciente eliminado lógicamente.');
@@ -207,16 +187,8 @@ class PatientController extends Controller
 
     public function toggleStatus(Request $request, Patient $patient): RedirectResponse
     {
-        Gate::authorize('update', $patient);
+        Gate::authorize('delete', $patient);
         $patient->update(['is_active' => ! $patient->is_active]);
-
-        Log::info('audit.patient.status_changed', [
-            'actor_id' => $request->user()->id,
-            'entity' => 'patient',
-            'entity_id' => $patient->id,
-            'is_active' => $patient->is_active,
-            'result' => 'success',
-        ]);
 
         return back()->with('status', 'Estado del paciente actualizado.');
     }

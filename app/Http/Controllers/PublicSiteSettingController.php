@@ -14,7 +14,7 @@ class PublicSiteSettingController extends Controller
 {
     public function edit(): View
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-public-site');
 
         return view('public-settings.edit', [
             'settings' => PublicSiteSetting::query()->find(1) ?? new PublicSiteSetting,
@@ -23,7 +23,7 @@ class PublicSiteSettingController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-public-site');
         $data = $request->validate([
             'clinic_name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],

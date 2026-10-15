@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Services\PermissionCatalog;
 use Database\Factories\RoleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['name'])]
@@ -47,5 +49,32 @@ class Role extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'role_permissions');
+    }
+
+    public function hasPermission(string $name): bool
+    {
+        if (! $this->permissions_initialized) {
+            return in_array($name, PermissionCatalog::defaults($this->name), true);
+        }
+
+        return $this->permissions()->where('name', $name)->exists();
+    }
+
+    /** @return array<int, string> */
+    public function effectivePermissionNames(): array
+    {
+        return $this->permissions_initialized
+            ? $this->permissions->pluck('name')->all()
+            : PermissionCatalog::defaults($this->name);
+    }
+
+    protected function casts(): array
+    {
+        return ['permissions_initialized' => 'boolean'];
     }
 }

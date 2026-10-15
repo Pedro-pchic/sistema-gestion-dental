@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class UserAdministrationTest extends TestCase
@@ -132,7 +132,6 @@ class UserAdministrationTest extends TestCase
         $administrator = $this->administrator();
         $dentistRole = Role::factory()->create(['name' => Role::DENTIST]);
         $managedUser = User::factory()->create();
-        Log::spy();
 
         $this->actingAs($administrator)
             ->put(route('usuarios.update', $managedUser), [
@@ -143,14 +142,10 @@ class UserAdministrationTest extends TestCase
             ])
             ->assertRedirectToRoute('usuarios.index');
 
-        Log::shouldHaveReceived('info')
-            ->withArgs(fn (string $message, array $context): bool => $message === 'audit.user.updated'
-                && $context['actor_id'] === $administrator->id
-                && $context['entity_id'] === $managedUser->id
-                && $context['role_id_after'] === $dentistRole->id
-                && ! array_key_exists('password', $context)
-                && ! array_key_exists('email', $context))
-            ->once();
+        $log = AuditLog::query()->where('module', 'security')->where('action', 'role_changed')->where('auditable_id', $managedUser->id)->firstOrFail();
+        $this->assertSame($administrator->id, $log->actor_user_id);
+        $this->assertSame($dentistRole->id, $log->metadata['role_id_after']);
+        $this->assertStringNotContainsString($managedUser->email, json_encode($log->metadata));
     }
 
     private function administrator(): User

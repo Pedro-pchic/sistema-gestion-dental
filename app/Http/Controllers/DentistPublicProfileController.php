@@ -13,14 +13,14 @@ class DentistPublicProfileController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-dentists-public');
 
         return view('dentists-public.index', ['dentists' => Dentist::query()->with('user:id,name,is_active')->orderBy('id')->get()]);
     }
 
     public function update(Request $request, Dentist $dentist): RedirectResponse
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-dentists-public');
         $data = $request->validate([
             'is_public' => ['required', 'boolean'],
             'specialty' => ['nullable', 'string', 'max:255'],

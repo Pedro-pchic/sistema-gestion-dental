@@ -14,7 +14,7 @@ class AnnouncementController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-announcements');
 
         return view('announcements.index', [
             'announcements' => Announcement::query()->orderBy('sort_order')->latest('id')->paginate(20),
@@ -23,21 +23,21 @@ class AnnouncementController extends Controller
 
     public function create(): View
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-announcements');
 
         return view('announcements.form', ['announcement' => new Announcement]);
     }
 
     public function edit(Announcement $announcement): View
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-announcements');
 
         return view('announcements.form', compact('announcement'));
     }
 
     public function store(Request $request): RedirectResponse
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-announcements');
         $data = $this->validated($request);
 
         if ($request->hasFile('image')) {
@@ -51,7 +51,7 @@ class AnnouncementController extends Controller
 
     public function update(Request $request, Announcement $announcement): RedirectResponse
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-announcements');
         $data = $this->validated($request);
         $oldImage = $announcement->image_path;
 
@@ -70,7 +70,7 @@ class AnnouncementController extends Controller
 
     public function toggle(Announcement $announcement): RedirectResponse
     {
-        Gate::authorize('manage-users');
+        Gate::authorize('manage-announcements');
 
         if (! $announcement->is_published && ! $announcement->published_on) {
             return back()->withErrors(['published_on' => 'Define una fecha de publicación.']);

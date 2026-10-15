@@ -69,4 +69,14 @@ class User extends Authenticatable
     {
         return $this->role?->name === $roleName;
     }
+
+    public function hasPermission(string $permission): bool
+    {
+        return $this->is_active && ($this->role?->hasPermission($permission) ?? false);
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class, 'actor_user_id');
+    }
 }

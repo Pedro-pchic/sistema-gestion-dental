@@ -122,6 +122,8 @@ class AppointmentManagementTest extends TestCase
                 'starts_at' => 'El odontólogo ya tiene una cita en ese horario.',
             ]);
 
+        $this->assertDatabaseHas('audit_logs', ['module' => 'appointments', 'action' => 'conflict_rejected', 'result' => 'rejected', 'actor_user_id' => $receptionist->id]);
+
         $adjacentPayload = $this->appointmentPayload($patient, $dentist, '2030-02-12T10:00', '2030-02-12T11:00');
         $this->actingAs($receptionist)
             ->post(route('citas.store'), $adjacentPayload)

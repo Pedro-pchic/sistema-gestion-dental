@@ -5,6 +5,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AppointmentReminderController;
 use App\Http\Controllers\AppointmentRequestController;
 use App\Http\Controllers\AppointmentTransitionController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DentalFinancialReportController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\PatientTreatmentController;
 use App\Http\Controllers\PublicAppointmentRequestController;
 use App\Http\Controllers\PublicSiteController;
 use App\Http\Controllers\PublicSiteSettingController;
+use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\TreatmentController;
 use App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\UserController;
@@ -45,6 +47,12 @@ if ($isTesting) {
 }
 
 Route::middleware(['auth', 'active'])->group(function () use ($isTesting): void {
+    Route::get('/administracion/roles', [RolePermissionController::class, 'index'])->name('roles.index');
+    Route::get('/administracion/roles/{role}', [RolePermissionController::class, 'edit'])->name('roles.edit');
+    Route::put('/administracion/roles/{role}', [RolePermissionController::class, 'update'])->name('roles.update');
+    Route::get('/administracion/auditoria', [AuditLogController::class, 'index'])->name('audit.index');
+    Route::get('/administracion/auditoria/{auditLog}', [AuditLogController::class, 'show'])->name('audit.show');
+
     Route::get('/solicitudes-cita', [AppointmentRequestController::class, 'index'])->name('solicitudes-cita.index');
     Route::get('/solicitudes-cita/{appointmentRequest}', [AppointmentRequestController::class, 'show'])->name('solicitudes-cita.show');
     Route::post('/solicitudes-cita/{appointmentRequest}/confirmar', [AppointmentRequestController::class, 'confirm'])->name('solicitudes-cita.confirm');

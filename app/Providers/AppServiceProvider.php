@@ -3,14 +3,19 @@
 namespace App\Providers;
 
 use App\Contracts\SmsSender;
+use App\Models\Announcement;
 use App\Models\Appointment;
+use App\Models\AppointmentRequest;
 use App\Models\DentalInvoice;
 use App\Models\DentalPayment;
+use App\Models\Dentist;
 use App\Models\Patient;
 use App\Models\PatientTreatment;
+use App\Models\PublicSiteSetting;
 use App\Models\Role;
 use App\Models\Treatment;
 use App\Models\TreatmentPlan;
+use App\Models\TreatmentPlanItem;
 use App\Models\User;
 use App\Policies\AppointmentPolicy;
 use App\Policies\DentalInvoicePolicy;
@@ -19,8 +24,10 @@ use App\Policies\PatientPolicy;
 use App\Policies\PatientTreatmentPolicy;
 use App\Policies\TreatmentPlanPolicy;
 use App\Policies\TreatmentPolicy;
+use App\Services\AuditObserver;
 use App\Services\CloudinaryProductImageStorage;
 use App\Services\DisabledSmsSender;
+use App\Services\PermissionCatalog;
 use App\Services\ProductImageStorage;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -56,6 +63,26 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Treatment::class, TreatmentPolicy::class);
         Gate::policy(PatientTreatment::class, PatientTreatmentPolicy::class);
         Gate::policy(TreatmentPlan::class, TreatmentPlanPolicy::class);
+
+        foreach ([User::class, Patient::class, Appointment::class, AppointmentRequest::class, PatientTreatment::class, TreatmentPlan::class, TreatmentPlanItem::class, DentalInvoice::class, DentalPayment::class, Announcement::class, PublicSiteSetting::class, Dentist::class, Treatment::class] as $model) {
+            $model::observe(AuditObserver::class);
+        }
+
+        Gate::before(function (User $user, string $ability, array $arguments): ?bool {
+            $permission = PermissionCatalog::requiredFor($ability, $arguments);
+
+            return $permission !== null && ! $user->hasPermission($permission) ? false : null;
+        });
+
+        Gate::define('roles.view', fn (User $user): bool => $user->hasRole(Role::ADMINISTRATOR) && $user->hasPermission('roles.view'));
+        Gate::define('roles.manage', fn (User $user): bool => $user->hasRole(Role::ADMINISTRATOR) && $user->hasPermission('roles.manage'));
+        Gate::define('audit.view', fn (User $user): bool => $user->hasRole(Role::ADMINISTRATOR) && $user->hasPermission('audit.view'));
+        Gate::define('appointment_requests.view', fn (User $user): bool => $user->hasPermission('appointment_requests.view') && $user->can('create', Appointment::class));
+        Gate::define('appointment_requests.confirm', fn (User $user): bool => $user->hasPermission('appointment_requests.confirm') && $user->can('create', Appointment::class));
+        Gate::define('appointment_requests.reject', fn (User $user): bool => $user->hasPermission('appointment_requests.reject') && $user->can('create', Appointment::class));
+        Gate::define('manage-announcements', fn (User $user): bool => $user->hasRole(Role::ADMINISTRATOR) && $user->hasPermission('announcements.manage'));
+        Gate::define('manage-public-site', fn (User $user): bool => $user->hasRole(Role::ADMINISTRATOR) && $user->hasPermission('public_site.manage'));
+        Gate::define('manage-dentists-public', fn (User $user): bool => $user->hasRole(Role::ADMINISTRATOR) && $user->hasPermission('dentists_public.manage'));
 
         Gate::define('manage-patient-assignments', fn (User $user): bool => $user->can(
             'assignDentists',

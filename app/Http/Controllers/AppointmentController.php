@@ -189,7 +189,7 @@ class AppointmentController extends Controller
                     ? $focusDate->addWeek()->toDateString()
                     : $focusDate->addMonthNoOverflow()->toDateString()),
             'statusOptions' => AppointmentStatus::cases(),
-            'pendingPublicRequests' => $user->can('create', Appointment::class)
+            'pendingPublicRequests' => $user->can('appointment_requests.view')
                 ? AppointmentRequest::query()->where('status', 'pending')->count()
                 : null,
         ]);

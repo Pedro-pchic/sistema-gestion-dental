@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AppointmentStatus;
-use App\Models\Appointment;
 use App\Models\AppointmentRequest;
 use App\Models\Dentist;
 use App\Models\Patient;
@@ -21,7 +20,7 @@ class AppointmentRequestController extends Controller
 {
     public function index(Request $request): View
     {
-        Gate::authorize('create', Appointment::class);
+        Gate::authorize('appointment_requests.view');
         $filters = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d'],
             'status' => ['nullable', Rule::in(['pending', 'confirmed', 'rejected'])],
@@ -48,7 +47,7 @@ class AppointmentRequestController extends Controller
 
     public function show(AppointmentRequest $appointmentRequest, AppointmentScheduler $scheduler): View
     {
-        Gate::authorize('create', Appointment::class);
+        Gate::authorize('appointment_requests.view');
         $appointmentRequest->load(['treatment', 'dentist.user', 'patient', 'appointment', 'events.user']);
         $matches = Patient::query()->where('is_active', true)
             ->where(function ($query) use ($appointmentRequest): void {
@@ -65,7 +64,7 @@ class AppointmentRequestController extends Controller
 
     public function confirm(Request $request, AppointmentRequest $appointmentRequest, AppointmentScheduler $scheduler): RedirectResponse
     {
-        Gate::authorize('create', Appointment::class);
+        Gate::authorize('appointment_requests.confirm');
         $data = $request->validate(['patient_id' => ['nullable', 'integer', Rule::exists('patients', 'id')->where('is_active', true)->whereNull('deleted_at')]]);
 
         DB::transaction(function () use ($appointmentRequest, $data, $request, $scheduler): void {
@@ -133,7 +132,7 @@ class AppointmentRequestController extends Controller
 
     public function reject(Request $request, AppointmentRequest $appointmentRequest): RedirectResponse
     {
-        Gate::authorize('create', Appointment::class);
+        Gate::authorize('appointment_requests.reject');
         $data = $request->validate(['review_note' => ['required', 'string', 'max:1000']]);
 
         DB::transaction(function () use ($appointmentRequest, $data, $request): void {

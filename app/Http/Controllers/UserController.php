@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -61,16 +60,6 @@ class UserController extends Controller
             return $user;
         });
 
-        Log::info('audit.user.created', [
-            'actor_id' => $request->user()->id,
-            'entity' => 'user',
-            'entity_id' => $user->id,
-            'role_id' => $user->role_id,
-            'is_active' => $user->is_active,
-            'clinical_access' => $user->can_view_clinical_records,
-            'result' => 'success',
-        ]);
-
         return redirect()->route('usuarios.index')->with('status', 'Usuario creado correctamente.');
     }
 
@@ -111,10 +100,6 @@ class UserController extends Controller
             unset($data['password']);
         }
 
-        $previousRoleId = $user->role_id;
-        $previousStatus = $user->is_active;
-        $previousClinicalAccess = $user->can_view_clinical_records;
-
         DB::transaction(function () use ($data, $user): void {
             if ($user->is_active && $user->hasRole(Role::ADMINISTRATOR)
                 && ((int) $data['role_id'] !== $user->role_id || ! $data['is_active'])) {
@@ -124,22 +109,6 @@ class UserController extends Controller
             $user->update($data);
             $this->syncDentistProfile($user);
         });
-
-        if ($user->wasChanged()) {
-            Log::info('audit.user.updated', [
-                'actor_id' => $request->user()->id,
-                'entity' => 'user',
-                'entity_id' => $user->id,
-                'changed_fields' => array_keys($user->getChanges()),
-                'role_id_before' => $previousRoleId,
-                'role_id_after' => $user->role_id,
-                'is_active_before' => $previousStatus,
-                'is_active_after' => $user->is_active,
-                'clinical_access_before' => $previousClinicalAccess,
-                'clinical_access_after' => $user->can_view_clinical_records,
-                'result' => 'success',
-            ]);
-        }
 
         return redirect()->route('usuarios.index')->with('status', 'Usuario actualizado correctamente.');
     }
@@ -158,8 +127,6 @@ class UserController extends Controller
     {
         Gate::authorize('manage-users');
 
-        $previousStatus = $user->is_active;
-
         DB::transaction(function () use ($user): void {
             if ($user->is_active && $user->hasRole(Role::ADMINISTRATOR)) {
                 $this->ensureAnotherActiveAdministrator($user);
@@ -168,15 +135,6 @@ class UserController extends Controller
             $user->update(['is_active' => ! $user->is_active]);
             $this->syncDentistProfile($user);
         });
-
-        Log::info('audit.user.status_changed', [
-            'actor_id' => auth()->id(),
-            'entity' => 'user',
-            'entity_id' => $user->id,
-            'is_active_before' => $previousStatus,
-            'is_active_after' => $user->is_active,
-            'result' => 'success',
-        ]);
 
         return redirect()->route('usuarios.index')->with('status', 'Estado del usuario actualizado.');
     }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
@@ -23,8 +24,11 @@ class AuthenticationTest extends TestCase
         ])->assertRedirectToRoute('dashboard');
 
         $this->assertAuthenticatedAs($user);
+        $this->assertDatabaseHas('audit_logs', ['module' => 'security', 'action' => 'login', 'result' => 'success', 'actor_user_id' => $user->id]);
 
         $this->post(route('logout'))->assertRedirectToRoute('login');
+
+        $this->assertDatabaseHas('audit_logs', ['module' => 'security', 'action' => 'logout', 'result' => 'success', 'actor_user_id' => $user->id]);
 
         $this->assertGuest();
     }
@@ -42,6 +46,9 @@ class AuthenticationTest extends TestCase
         ])->assertSessionHasErrors('email');
 
         $this->assertGuest();
+        $rejected = AuditLog::query()->where('action', 'login')->where('result', 'rejected')->firstOrFail();
+        $this->assertNull($rejected->actor_user_id);
+        $this->assertSame([], $rejected->metadata);
     }
 
     public function test_authenticated_inactive_user_is_logged_out_from_protected_routes(): void

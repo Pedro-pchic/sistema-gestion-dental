@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\AuditLog;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -39,11 +40,13 @@ class LoginRequest extends FormRequest
         ];
 
         if (! Auth::attempt($credentials, $this->boolean('remember'))) {
+            AuditLog::record('security', 'login', result: 'rejected');
             throw ValidationException::withMessages([
                 'email' => 'Las credenciales son incorrectas o la cuenta está inactiva.',
             ]);
         }
 
         $this->session()->regenerate();
+        AuditLog::record('security', 'login');
     }
 }
