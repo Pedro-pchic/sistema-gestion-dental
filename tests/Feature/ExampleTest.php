@@ -13,6 +13,7 @@ class ExampleTest extends TestCase
     {
         $this->get('/')
             ->assertOk()
-            ->assertSeeText('Sistema de Gestión Dental');
+            ->assertSeeText('Chimuelo')
+            ->assertSee('logo.png');
     }
 }

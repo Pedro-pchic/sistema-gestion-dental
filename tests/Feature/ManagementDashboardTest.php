@@ -22,6 +22,7 @@ use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class ManagementDashboardTest extends TestCase
@@ -164,7 +165,7 @@ class ManagementDashboardTest extends TestCase
         $this->actingAs($admin)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertViewIs('dashboard.dental');
+            ->assertInertia(fn (AssertableInertia $page) => $page->component('Dashboard/Index'));
 
         $salesUser = $this->userWithRole(Role::SALES);
         $this->actingAs($salesUser)

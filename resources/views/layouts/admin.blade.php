@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('logo.png') }}" type="image/png">
     <title>@yield('title', 'Administración') | {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -14,13 +14,9 @@
     <aside id="admin-sidebar" data-admin-sidebar class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-espresso text-slate-100 shadow-2xl transition-[transform,width] duration-200 ease-out lg:translate-x-0 lg:shadow-none" aria-label="Navegación principal">
         <div class="flex h-20 shrink-0 items-center justify-between border-b border-white/10 px-5">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-400" aria-label="Ir al dashboard">
-                <span class="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-300 text-brand-950 shadow-sm ring-1 ring-white/20" aria-hidden="true">
-                    <svg class="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7">
-                        <path d="M12 3c-1.7 0-2.1-.8-4-.8-2.5 0-4 2.1-4 4.5 0 3 1.8 5.7 3 8.8.7 1.9 1.4 3.6 2.5 3.6 1.6 0 1.7-4.8 3.5-4.8s1.9 4.8 3.5 4.8c1.1 0 1.8-1.7 2.5-3.6 1.2-3.1 3-5.8 3-8.8 0-2.4-1.5-4.5-4-4.5-1.9 0-2.3.8-4 .8Z" />
-                    </svg>
-                </span>
+                <img src="{{ asset('logo.png') }}" alt="" class="size-11 shrink-0 rounded-2xl object-contain shadow-sm ring-1 ring-white/20">
                 <span data-sidebar-brand>
-                    <span class="block text-base font-bold tracking-tight text-white">Clínica Dental</span>
+                    <span class="block text-base font-bold tracking-tight text-white">{{ config('app.name') }}</span>
                     <span class="block text-[0.67rem] font-semibold uppercase tracking-[0.16em] text-brand-200">Gestión odontológica</span>
                 </span>
             </a>
@@ -316,6 +312,16 @@
             @yield('content')
         </main>
     </div>
+    <dialog data-confirm-dialog class="ui-dialog" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
+        <form method="dialog" class="grid gap-4">
+            <h2 id="confirm-dialog-title" class="text-lg font-bold text-charcoal">Confirmar acción</h2>
+            <p id="confirm-dialog-message" data-confirm-message class="text-sm leading-6 text-slate-700"></p>
+            <div class="flex flex-wrap justify-end gap-2">
+                <button type="submit" value="cancel" class="ui-button ui-button-secondary">Volver</button>
+                <button type="submit" value="confirm" class="ui-button ui-button-danger">Confirmar</button>
+            </div>
+        </form>
+    </dialog>
     @stack('scripts')
 </body>
 </html>

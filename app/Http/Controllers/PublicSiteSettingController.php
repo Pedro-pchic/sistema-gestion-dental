@@ -8,16 +8,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PublicSiteSettingController extends Controller
 {
-    public function edit(): View
+    public function edit(): Response
     {
         Gate::authorize('manage-public-site');
 
-        return view('public-settings.edit', [
-            'settings' => PublicSiteSetting::query()->find(1) ?? new PublicSiteSetting,
+        $settings = PublicSiteSetting::query()->find(1) ?? new PublicSiteSetting;
+
+        return Inertia::render('PublicSite/Edit', [
+            'settings' => $settings->only([
+                'clinic_name', 'description', 'phone', 'email', 'address', 'opening_hours',
+                'facebook_url', 'instagram_url',
+            ]),
+            'bookingHours' => $settings->bookingHours(),
+            'updateUrl' => route('configuracion-publica.update'),
+            'publicUrl' => route('public.home'),
         ]);
     }
 

@@ -11,7 +11,7 @@
         @endif
         @can('cancel', $invoice)
             @if ($invoice->status !== \App\Enums\DentalInvoiceStatus::Cancelled)
-                <form method="POST" action="{{ route('facturacion.facturas.cancel', $invoice) }}" class="flex flex-wrap items-center gap-2">
+                <form method="POST" action="{{ route('facturacion.facturas.cancel', $invoice) }}" data-confirm="¿Anular esta factura?" class="flex flex-wrap items-center gap-2">
                     @csrf
                     <label for="invoice-cancel-reason" class="sr-only">Motivo de anulación de la factura</label>
                     <input id="invoice-cancel-reason" name="reason" required minlength="5" maxlength="1000" placeholder="Motivo de anulación" class="w-52 rounded-md border border-stone-300 px-3 py-2 text-sm">

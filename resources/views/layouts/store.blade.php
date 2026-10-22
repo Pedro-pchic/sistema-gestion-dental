@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('logo.png') }}" type="image/png">
     <meta name="description" content="@yield('meta_description', 'Sistema de gestión dental y atención clínica.')">
     <link rel="canonical" href="{{ url()->current() }}">
     <title>@yield('title', 'Inicio') | {{ config('app.name') }}</title>
@@ -14,7 +14,7 @@
         <header class="sticky top-0 z-30 border-b border-sand/80 bg-cream/95 shadow-sm backdrop-blur">
             <div class="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
                     <a href="{{ route('inicio') }}" class="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-accent">
-                    <span class="grid size-11 shrink-0 place-items-center rounded-2xl bg-blue-accent text-xl font-black tracking-tight text-white shadow-sm">S</span>
+                    <img src="{{ asset('logo.png') }}" alt="" class="size-11 shrink-0 rounded-2xl object-contain shadow-sm">
                     <span class="min-w-0">
                         <span class="block truncate text-lg font-black tracking-[0.08em] text-charcoal">{{ config('app.name') }}</span>
                         <span class="hidden text-[0.65rem] font-bold uppercase tracking-[0.18em] text-blue-accent sm:block">Gestión clínica dental</span>
@@ -107,7 +107,7 @@
             <div class="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:px-8">
                 <div>
                     <a href="{{ route('inicio') }}" class="inline-flex items-center gap-3 rounded-lg text-cream focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sand">
-                        <span class="grid size-10 place-items-center rounded-xl bg-blue-accent text-lg font-black text-white" aria-hidden="true">S</span>
+                        <img src="{{ asset('logo.png') }}" alt="" class="size-10 rounded-xl object-contain">
                         <span class="font-black tracking-[0.08em]">{{ config('app.name') }}</span>
                     </a>
                     <p class="mt-3 max-w-sm text-sm leading-6">Sistema de gestión dental.</p>

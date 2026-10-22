@@ -7,9 +7,9 @@
             @if ($settings->logo_path)
                 <img src="{{ asset('storage/'.$settings->logo_path) }}" alt="" class="size-10 rounded-xl object-contain">
             @else
-                <span class="grid size-10 place-items-center rounded-xl bg-brand-600 text-white" aria-hidden="true">✦</span>
+                <img src="{{ asset('logo.png') }}" alt="" class="size-10 rounded-xl object-contain">
             @endif
-            {{ $settings->clinic_name ?: 'Clínica dental' }}
+            {{ $settings->clinic_name ?: config('app.name') }}
         </a>
         <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-slate-700">
             <a href="#servicios" class="hover:text-brand-700">Servicios</a>
@@ -122,12 +122,13 @@
                     <div class="rounded-2xl bg-brand-50 p-4 text-sm text-brand-950 sm:col-span-2"><strong>Resumen de tu solicitud</strong><p data-booking-summary class="mt-2">Selecciona servicio, odontólogo, fecha y hora.</p></div>
                     <button data-booking-submit disabled class="rounded-full bg-brand-700 px-7 py-3 font-semibold text-white hover:bg-brand-800 sm:col-span-2">Enviar solicitud</button>
                 </form>
+                @vite('resources/js/public-booking.js')
             @endif
         </div>
     </div></section>
 
     <footer id="contacto" class="bg-slate-900 py-14 text-slate-200"><div class="mx-auto grid max-w-7xl gap-8 px-5 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
-        <div><h2 class="text-lg font-bold text-white">{{ $settings->clinic_name ?: 'Clínica dental' }}</h2><p class="mt-3 text-sm leading-6">{{ $settings->description }}</p></div>
+        <div><h2 class="text-lg font-bold text-white">{{ $settings->clinic_name ?: config('app.name') }}</h2><p class="mt-3 text-sm leading-6">{{ $settings->description }}</p></div>
         <div><h3 class="font-semibold text-white">Contacto</h3>@if ($settings->phone)<p class="mt-3"><a href="tel:{{ preg_replace('/[^+0-9]/', '', $settings->phone) }}">{{ $settings->phone }}</a></p>@endif @if ($settings->email)<p class="mt-2"><a href="mailto:{{ $settings->email }}">{{ $settings->email }}</a></p>@endif</div>
         <div><h3 class="font-semibold text-white">Visítanos</h3>@if ($settings->address)<p class="mt-3 whitespace-pre-line">{{ $settings->address }}</p>@endif @if ($settings->opening_hours)<p class="mt-3 whitespace-pre-line text-sm">{{ $settings->opening_hours }}</p>@endif</div>
         <div><h3 class="font-semibold text-white">Síguenos</h3><div class="mt-3 flex gap-4">@if ($settings->facebook_url)<a href="{{ $settings->facebook_url }}" rel="noopener noreferrer" target="_blank">Facebook</a>@endif @if ($settings->instagram_url)<a href="{{ $settings->instagram_url }}" rel="noopener noreferrer" target="_blank">Instagram</a>@endif</div></div>

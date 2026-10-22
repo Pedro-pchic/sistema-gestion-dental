@@ -75,7 +75,7 @@
                     </div>
                     <div class="flex flex-wrap gap-3">
                         <a href="{{ route('clientes.direcciones.edit', [$customer, $address]) }}" class="font-semibold text-brand-700 hover:text-brand-500">Editar</a>
-                        <form method="POST" action="{{ route('clientes.direcciones.destroy', [$customer, $address]) }}" onsubmit="return confirm('¿Eliminar esta dirección?')">
+                        <form method="POST" action="{{ route('clientes.direcciones.destroy', [$customer, $address]) }}" data-confirm="¿Eliminar esta dirección?">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="font-semibold text-red-700 hover:text-red-500">Eliminar</button>

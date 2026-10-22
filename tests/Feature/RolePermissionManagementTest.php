@@ -9,12 +9,34 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
 class RolePermissionManagementTest extends TestCase
 {
     use LazilyRefreshDatabase;
+
+    public function test_repeated_permission_checks_load_role_permissions_once(): void
+    {
+        $role = Role::factory()->create(['name' => Role::RECEPTIONIST, 'permissions_initialized' => true]);
+        $permission = Permission::query()->where('name', 'patients.view')->firstOrFail();
+        $role->permissions()->attach($permission);
+        $user = User::factory()->for($role)->create(['is_active' => true]);
+
+        DB::connection()->enableQueryLog();
+        $this->assertTrue($user->hasPermission('patients.view'));
+        $this->assertTrue($user->hasPermission('patients.view'));
+        $this->assertFalse($user->hasPermission('patients.delete'));
+        $permissionQueries = array_filter(
+            DB::connection()->getQueryLog(),
+            fn (array $query): bool => str_contains($query['query'], 'role_permissions'),
+        );
+        DB::connection()->disableQueryLog();
+        DB::connection()->flushQueryLog();
+
+        $this->assertCount(1, $permissionQueries);
+    }
 
     public function test_administrator_can_list_and_revoke_a_permission_without_bypassing_policies(): void
     {

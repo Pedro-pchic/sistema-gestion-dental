@@ -29,8 +29,11 @@ use App\Services\CloudinaryProductImageStorage;
 use App\Services\DisabledSmsSender;
 use App\Services\PermissionCatalog;
 use App\Services\ProductImageStorage;
+use App\Support\RequestPerformance;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -52,6 +55,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        DB::listen(function (QueryExecuted $query): void {
+            if (! app()->bound('request')) {
+                return;
+            }
+
+            $metrics = request()->attributes->get('performance_metrics');
+
+            if ($metrics instanceof RequestPerformance) {
+                $metrics->recordQuery($query->time, (float) config('performance.slow_query_ms'));
+            }
+        });
+
         if ($this->app->environment('testing')) {
             $this->loadMigrationsFrom(database_path('migrations/legacy'));
         }

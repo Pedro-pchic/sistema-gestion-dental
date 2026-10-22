@@ -3,8 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="{{ asset('logo.png') }}" type="image/png">
     <meta name="description" content="{{ $settings->description ?: 'Conoce nuestros servicios odontológicos y solicita una cita.' }}">
-    <title>{{ $settings->clinic_name ?: 'Clínica dental' }}</title>
+    <title>{{ $settings->clinic_name ?: config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased">

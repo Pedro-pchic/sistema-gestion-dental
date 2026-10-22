@@ -35,6 +35,8 @@ class PublicSiteTest extends TestCase
         Announcement::query()->create(['title' => 'Borrador privado', 'description' => 'Oculto', 'published_on' => $today, 'is_published' => false]);
 
         $this->get(route('public.home'))->assertOk()
+            ->assertSeeText('Chimuelo')
+            ->assertSee('logo.png')
             ->assertSeeText($visible->name)
             ->assertSeeText('Noticia vigente')
             ->assertDontSeeText('Tratamiento interno')

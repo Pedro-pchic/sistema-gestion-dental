@@ -2,6 +2,8 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../js/Components/**/*.jsx';
+@source '../js/Pages/**/*.jsx';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
@@ -28,9 +30,18 @@
     --color-blue-accent: #2563eb;
     --color-coffee: #172b4d;
     --color-charcoal: #172b4d;
+
+    --radius-control: 0.75rem;
+    --radius-panel: 1rem;
+    --shadow-panel: 0 8px 30px -22px rgb(23 43 77 / 40%);
 }
 
 @layer base {
+    :root {
+        --ui-control-border: #94a3b8;
+        --ui-control-focus: var(--color-brand-700);
+    }
+
     :focus-visible {
         outline-color: var(--color-brand-600);
         outline-offset: 2px;
@@ -58,17 +69,18 @@
         opacity: 0.65;
     }
 
-    input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']),
+    input:where(:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset'])),
     select,
     textarea {
         max-width: 100%;
-        border-radius: 0.625rem;
-        border-color: #cbd9e1;
+        border: 1px solid var(--ui-control-border);
+        border-radius: var(--radius-control);
         background-color: var(--color-warm-white);
         color: var(--color-charcoal);
+        padding: 0.625rem 0.75rem;
     }
 
-    input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']),
+    input:where(:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset'])),
     select {
         min-height: 2.75rem;
     }
@@ -77,25 +89,57 @@
         min-height: 6rem;
     }
 
+    input::placeholder,
+    textarea::placeholder {
+        color: #64748b;
+        opacity: 1;
+    }
+
+    input[type='file']::file-selector-button {
+        margin-right: 0.75rem;
+        border: 0;
+        border-radius: 0.5rem;
+        background: var(--color-brand-50);
+        color: var(--color-brand-900);
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+    }
+
     input[type='checkbox'],
     input[type='radio'] {
         accent-color: var(--color-brand-600);
     }
 
-    label:not(.sr-only) {
-        color: var(--color-charcoal);
-        font-weight: 500;
+    input[type='checkbox'],
+    input[type='radio'] {
+        border: 1px solid var(--ui-control-border);
     }
 
-    [data-admin-content] input:focus-visible,
-    [data-admin-content] select:focus-visible,
-    [data-admin-content] textarea:focus-visible {
-        border-color: var(--color-brand-600);
-        outline: 2px solid var(--color-brand-200);
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        border-color: var(--ui-control-focus);
+        outline: 2px solid var(--color-brand-300);
+        outline-offset: 1px;
     }
 
-    [data-admin-content] [aria-invalid='true'] {
-        border-color: var(--color-red-600);
+    [aria-invalid='true'] {
+        border-color: var(--color-red-700);
+        background-color: var(--color-red-50);
+    }
+
+    [aria-invalid='true']:focus-visible {
+        outline-color: var(--color-red-300);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        button,
+        a,
+        input,
+        select,
+        textarea {
+            transition-duration: 0ms;
+        }
     }
 }
 
@@ -121,7 +165,25 @@
     }
 
     .ui-card {
-        @apply rounded-2xl border border-slate-200/80 bg-warm-white shadow-[0_8px_30px_-22px_rgba(23,43,77,0.4)];
+        @apply border border-slate-200/80 bg-warm-white;
+        border-radius: var(--radius-panel);
+        box-shadow: var(--shadow-panel);
+    }
+
+    .ui-form-section {
+        @apply grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6;
+    }
+
+    .ui-filter {
+        @apply rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5;
+    }
+
+    .ui-field {
+        @apply grid gap-2 text-sm font-medium text-charcoal;
+    }
+
+    .ui-field-error {
+        @apply text-sm font-medium text-red-700;
     }
 
     .ui-alert-success {
@@ -198,6 +260,46 @@
 
     .ui-table-wrap {
         @apply overflow-hidden rounded-2xl border border-slate-200/80 bg-warm-white shadow-[0_8px_30px_-22px_rgba(23,43,77,0.4)];
+    }
+
+    .ui-table-scroll {
+        @apply overflow-x-auto;
+        scrollbar-color: var(--color-brand-300) var(--color-brand-50);
+    }
+
+    .ui-dialog {
+        @apply m-auto w-[min(26rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-6 text-charcoal shadow-2xl;
+    }
+
+    .ui-dialog::backdrop {
+        background: rgb(9 45 49 / 65%);
+    }
+
+    form[data-submitting] button:is([type='submit'], :not([type])) {
+        @apply cursor-wait opacity-75;
+    }
+
+    form[data-submitting] button:is([type='submit'], :not([type]))::after {
+        content: '';
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        margin-left: 0.5rem;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        vertical-align: -0.2rem;
+        animation: ui-spin 700ms linear infinite;
+    }
+
+    @keyframes ui-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        form[data-submitting] button:is([type='submit'], :not([type]))::after {
+            animation: none;
+        }
     }
 
     [data-admin-content] table thead {

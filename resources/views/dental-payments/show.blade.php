@@ -9,7 +9,7 @@
         <a href="{{ route('facturacion.pagos.receipt', $payment) }}" class="ui-button ui-button-primary">Recibo imprimible</a>
         @can('cancel', $payment)
             @if ($payment->status === \App\Enums\DentalPaymentStatus::Registered)
-                <form method="POST" action="{{ route('facturacion.pagos.cancel', $payment) }}" class="flex flex-wrap gap-2">
+                <form method="POST" action="{{ route('facturacion.pagos.cancel', $payment) }}" data-confirm="¿Anular este pago?" class="flex flex-wrap gap-2">
                     @csrf
                     <label for="payment-cancel-reason" class="sr-only">Motivo de anulación del pago</label>
                     <input id="payment-cancel-reason" name="reason" required minlength="5" maxlength="1000" placeholder="Motivo de anulación" class="w-52 rounded-md border border-stone-300 px-3 py-2 text-sm">

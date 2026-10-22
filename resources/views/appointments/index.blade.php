@@ -136,6 +136,7 @@
                 @endforelse
             </div>
         @else
+            <p class="mt-3 text-sm text-stone-600 sm:hidden">Desliza la agenda para ver los demás días.</p>
             <div class="mt-4 overflow-x-auto rounded-xl ring-1 ring-stone-200">
                 <div class="grid min-w-[56rem] grid-cols-7 bg-white">
                     @foreach ($weekdayLabels as $weekdayLabel)
@@ -170,7 +171,7 @@
                                     </a>
                                 @endforeach
                                 @if ($dayAppointments->count() > 3)
-                                    <span class="px-2 text-xs text-stone-500">+{{ $dayAppointments->count() - 3 }} más</span>
+                                    <a href="{{ route('citas.index', array_merge($filters, ['view' => 'day', 'date' => $day->toDateString()])) }}" class="rounded px-2 text-xs font-semibold text-brand-800 hover:underline focus-visible:outline-2 focus-visible:outline-brand-600">+{{ $dayAppointments->count() - 3 }} más</a>
                                 @endif
                             </div>
                         </section>

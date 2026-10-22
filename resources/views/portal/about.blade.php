@@ -1,7 +1,7 @@
 @extends('layouts.store')
 
 @section('title', 'Nosotros')
-@section('meta_description', 'Conoce el Sistema de Gestión Dental y su enfoque de atención clínica.')
+@section('meta_description', 'Conoce Chimuelo y su enfoque de atención clínica.')
 @section('heading', 'Nosotros')
 @section('subheading', 'Calzado, gestión y atención reunidos en una experiencia sencilla')
 

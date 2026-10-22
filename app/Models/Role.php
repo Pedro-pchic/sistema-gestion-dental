@@ -62,7 +62,7 @@ class Role extends Model
             return in_array($name, PermissionCatalog::defaults($this->name), true);
         }
 
-        return $this->permissions()->where('name', $name)->exists();
+        return $this->permissions->contains('name', $name);
     }
 
     /** @return array<int, string> */

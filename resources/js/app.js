@@ -1,4 +1,66 @@
-import './public-booking.js';
+const confirmDialog = document.querySelector('[data-confirm-dialog]');
+
+document.addEventListener('submit', (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement) || !form.dataset.confirm || form.dataset.confirmed) {
+        return;
+    }
+
+    event.preventDefault();
+    const submitter = event.submitter;
+    const confirmSubmission = () => {
+        form.dataset.confirmed = 'true';
+        if (submitter) {
+            form.requestSubmit(submitter);
+        } else {
+            form.requestSubmit();
+        }
+    };
+
+    if (!confirmDialog?.showModal) {
+        if (window.confirm(form.dataset.confirm)) {
+            confirmSubmission();
+        }
+
+        return;
+    }
+
+    confirmDialog.querySelector('[data-confirm-message]').textContent = form.dataset.confirm;
+    confirmDialog.returnValue = '';
+    confirmDialog.addEventListener('close', () => {
+        if (confirmDialog.returnValue === 'confirm') {
+            confirmSubmission();
+        }
+    }, { once: true });
+    confirmDialog.showModal();
+});
+
+document.addEventListener('submit', (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || form.closest('[data-confirm-dialog]')) {
+        return;
+    }
+
+    if (form.dataset.submitting) {
+        event.preventDefault();
+        return;
+    }
+
+    form.dataset.submitting = 'true';
+    form.setAttribute('aria-busy', 'true');
+});
+
+window.addEventListener('pageshow', () => {
+    document.querySelectorAll('form[data-submitting]').forEach((form) => {
+        delete form.dataset.submitting;
+        form.removeAttribute('aria-busy');
+    });
+    document.querySelectorAll('form[data-confirmed]').forEach((form) => {
+        delete form.dataset.confirmed;
+    });
+});
 
 const sidebar = document.querySelector('[data-admin-sidebar]');
 const sidebarOverlay = document.querySelector('[data-sidebar-overlay]');

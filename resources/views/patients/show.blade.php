@@ -90,7 +90,7 @@
             @endcan
 
             @can('delete', $patient)
-                <form method="POST" action="{{ route('pacientes.destroy', $patient) }}" onsubmit="return confirm('¿Eliminar lógicamente esta ficha?')">
+                <form method="POST" action="{{ route('pacientes.destroy', $patient) }}" data-confirm="¿Eliminar lógicamente esta ficha?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="ui-button ui-button-danger">Eliminar ficha</button>

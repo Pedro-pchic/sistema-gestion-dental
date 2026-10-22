@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Sistema de Gestión Dental'),
+    'name' => env('APP_NAME', 'Chimuelo'),
 
     /*
     |--------------------------------------------------------------------------

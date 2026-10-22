@@ -9,17 +9,17 @@
 @endsection
 
 @section('content')
-    <div class="ui-card overflow-hidden">
-        <div class="overflow-x-auto">
+    <div class="ui-table-wrap">
+        <div class="ui-table-scroll">
             <table class="w-full min-w-[54rem] divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-600">
                     <tr>
-                        <th class="px-4 py-3">Nombre</th>
-                        <th class="px-4 py-3">Correo</th>
-                        <th class="px-4 py-3">Rol</th>
-                        <th class="px-4 py-3">Acceso clínico</th>
-                        <th class="px-4 py-3">Estado</th>
-                        <th class="px-4 py-3 text-right">Acciones</th>
+                        <th scope="col" class="px-4 py-3">Nombre</th>
+                        <th scope="col" class="px-4 py-3">Correo</th>
+                        <th scope="col" class="px-4 py-3">Rol</th>
+                        <th scope="col" class="px-4 py-3">Acceso clínico</th>
+                        <th scope="col" class="px-4 py-3">Estado</th>
+                        <th scope="col" class="px-4 py-3 text-right">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
@@ -30,17 +30,17 @@
                             <td class="px-4 py-3">{{ $user->role?->name ?? 'Sin rol' }}</td>
                             <td class="px-4 py-3">{{ $user->can_view_clinical_records ? 'Autorizado' : 'Sin autorización' }}</td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ring-current/10 {{ $user->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700' }}">
+                                <span class="ui-badge {{ $user->is_active ? 'ui-badge-success' : 'ui-badge-neutral' }}">
                                     {{ $user->is_active ? 'Activo' : 'Inactivo' }}
                                 </span>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex justify-end gap-2">
-                                    <a href="{{ route('usuarios.edit', $user) }}" class="rounded-md border border-stone-300 px-3 py-1.5 font-medium hover:bg-stone-50">Editar</a>
-                                    <form method="POST" action="{{ route('usuarios.status', $user) }}">
+                                    <a href="{{ route('usuarios.edit', $user) }}" class="ui-button ui-button-compact ui-button-secondary">Editar</a>
+                                    <form method="POST" action="{{ route('usuarios.status', $user) }}" @if ($user->is_active) data-confirm="¿Desactivar el acceso de {{ $user->name }}?" @endif>
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="rounded-md px-3 py-1.5 font-medium {{ $user->is_active ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200' }}">
+                                        <button type="submit" class="ui-button ui-button-compact {{ $user->is_active ? 'ui-button-danger' : 'ui-button-secondary' }}">
                                             {{ $user->is_active ? 'Desactivar' : 'Activar' }}
                                         </button>
                                     </form>
@@ -49,7 +49,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-10 text-center text-stone-500">No hay usuarios registrados.</td>
+                            <td colspan="6" class="px-4 py-10 text-center text-stone-600">No hay usuarios registrados. Crea uno con «Nuevo usuario».</td>
                         </tr>
                     @endforelse
                 </tbody>

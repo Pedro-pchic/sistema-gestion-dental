@@ -1,12 +1,27 @@
-*.log
-.DS_Store
+
+# Archivos de entorno
 .env
 .env.*
 !.env.example
 .env.backup
 .env.production
-.phpactor.json
-.phpunit.result.cache
+
+# Dependencias
+/node_modules
+/vendor
+
+# Archivos generados
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+
+# Bases de datos locales
+/database/*.sqlite
+
+# IDE y herramientas
 /.codex
 /.cursor/
 /.idea
@@ -14,19 +29,22 @@
 /.phpunit.cache
 /.vscode
 /.zed
+.phpactor.json
+.phpunit.result.cache
 /auth.json
-/node_modules
-/database/*.sqlite
-/public/build
-/public/fonts-manifest.dev.json
-/public/hot
-/public/storage
-/storage/*.key
-/storage/pail
-/vendor
 _ide_helper.php
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
 Homestead.json
 Homestead.yaml
-Thumbs.db
+
+# Logs
+*.log
+
+# Documentacion local - no subir a GitHub
 *.md
+
+# Archivos de texto locales
 *.txt

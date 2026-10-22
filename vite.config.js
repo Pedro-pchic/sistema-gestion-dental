@@ -2,11 +2,13 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import inertia from '@inertiajs/vite';
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/public-booking.js', 'resources/js/inertia.jsx'],
             refresh: true,
             fonts: [
                 bunny('Instrument Sans', {
@@ -15,6 +17,8 @@ export default defineConfig({
             ],
         }),
         tailwindcss(),
+        react(),
+        inertia({ ssr: false }),
     ],
     server: {
         watch: {

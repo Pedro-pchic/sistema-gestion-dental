@@ -20,6 +20,7 @@ use App\Models\TreatmentPlan;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class DentalDashboardTest extends TestCase
@@ -90,11 +91,11 @@ class DentalDashboardTest extends TestCase
         $response = $this->actingAs($administrator)
             ->get(route('dashboard', ['from' => '2026-10-12', 'to' => '2026-10-12']))
             ->assertOk()
-            ->assertViewIs('dashboard.dental');
-        $metrics = $response->viewData('dashboardMetrics');
+            ->assertInertia(fn (Assert $page) => $page->component('Dashboard/Index'));
+        $metrics = $response->inertiaProps('dashboardMetrics');
 
-        $this->assertSame('2026-10-12', $response->viewData('from'));
-        $this->assertSame('2026-10-12', $response->viewData('to'));
+        $this->assertSame('2026-10-12', $response->inertiaProps('from'));
+        $this->assertSame('2026-10-12', $response->inertiaProps('to'));
         $this->assertSame(1, $metrics['active_patients']);
         $this->assertSame(1, $metrics['appointments_today']);
         $this->assertSame(1, $metrics['confirmed_appointments']);
@@ -108,11 +109,9 @@ class DentalDashboardTest extends TestCase
         $this->assertSame(1, $metrics['notification_status']['pending']);
         $this->assertSame(0, $metrics['notification_status']['failed_last_7_days']);
         $this->assertCount(1, $metrics['recent_activity']);
-        $response->assertSeeText('Ingresos registrados')
-            ->assertSeeText('Saldos pendientes')
-            ->assertSeeText('Ver recordatorios')
-            ->assertSeeText('Cita programada')
-            ->assertDontSeeText('Confidencial y no visible en el panel.');
+        $this->assertSame('created', $metrics['recent_activity'][0]['event_type']);
+        $this->assertNotNull($response->inertiaProps('urls.reminders'));
+        $this->assertStringNotContainsString('Confidencial y no visible en el panel.', $response->getContent());
     }
 
     public function test_receptionist_sees_pending_collections_without_revenue_totals(): void
@@ -126,14 +125,12 @@ class DentalDashboardTest extends TestCase
         $response = $this->actingAs($receptionist)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertViewIs('dashboard.dental')
-            ->assertSeeText('Cobros pendientes')
-            ->assertSeeText('Paciente Cobro')
-            ->assertSeeText('Ver recordatorios')
-            ->assertDontSeeText('Ingresos registrados');
-        $metrics = $response->viewData('dashboardMetrics');
+            ->assertInertia(fn (Assert $page) => $page->component('Dashboard/Index'));
+        $metrics = $response->inertiaProps('dashboardMetrics');
 
         $this->assertSame(1, $metrics['pending_invoice_count']);
+        $this->assertSame('Paciente Cobro', $metrics['pending_invoices'][0]['patient']);
+        $this->assertNotNull($response->inertiaProps('urls.reminders'));
         $this->assertSame(50.0, (float) $metrics['pending_balance']);
         $this->assertArrayNotHasKey('registered_income', $metrics);
         $this->assertArrayNotHasKey('issued_invoice_count', $metrics);
@@ -165,19 +162,17 @@ class DentalDashboardTest extends TestCase
         $response = $this->actingAs($dentistUser)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertViewIs('dashboard.dental')
-            ->assertSeeText('Paciente Asignado')
-            ->assertDontSeeText('Paciente Ajeno')
-            ->assertDontSeeText('Ingresos registrados')
-            ->assertDontSeeText('Ver recordatorios')
-            ->assertDontSeeText('Cobros pendientes');
-        $metrics = $response->viewData('dashboardMetrics');
+            ->assertInertia(fn (Assert $page) => $page->component('Dashboard/Index'));
+        $metrics = $response->inertiaProps('dashboardMetrics');
 
         $this->assertSame(1, $metrics['active_patients']);
         $this->assertSame(1, $metrics['confirmed_appointments']);
         $this->assertSame(1, $metrics['treatments_completed']);
         $this->assertCount(1, $metrics['recent_activity']);
-        $this->assertSame($assignedAppointment->getKey(), $metrics['recent_activity']->first()->appointment_id);
+        $this->assertSame($assignedAppointment->getKey(), $metrics['recent_activity'][0]['appointment_id']);
+        $this->assertSame('Paciente Asignado', $metrics['recent_activity'][0]['patient']);
+        $this->assertStringNotContainsString('Paciente Ajeno', $response->getContent());
+        $this->assertNull($response->inertiaProps('urls.reminders'));
         $this->assertArrayNotHasKey('registered_income', $metrics);
         $this->assertArrayNotHasKey('pending_balance', $metrics);
         $this->assertArrayNotHasKey('received_total', $metrics);
@@ -217,21 +212,21 @@ class DentalDashboardTest extends TestCase
             'period' => 'last_7_days',
             'dentist_id' => $dentist->id,
         ]))->assertOk();
-        $metrics = $response->viewData('dashboardMetrics');
+        $metrics = $response->inertiaProps('dashboardMetrics');
 
-        $this->assertSame('2026-10-06', $response->viewData('from'));
-        $this->assertSame('2026-10-12', $response->viewData('to'));
+        $this->assertSame('2026-10-06', $response->inertiaProps('from'));
+        $this->assertSame('2026-10-12', $response->inertiaProps('to'));
         $this->assertSame(1, $metrics['active_patients']);
         $this->assertSame(1, $metrics['registered_patients']);
         $this->assertSame(1, $metrics['scheduled_appointments']);
         $this->assertSame(0, $metrics['confirmed_appointments']);
-        $this->assertSame('2026-10-06', $metrics['appointment_trend']->first()->day);
+        $this->assertSame('2026-10-06', $metrics['appointment_trend'][0]['day']);
         $this->assertSame(1, $metrics['treatments_completed']);
-        $this->assertSame(1, $metrics['top_treatments']->first()->aggregate);
+        $this->assertSame(1, $metrics['top_treatments'][0]['aggregate']);
         $this->assertSame(1, $metrics['active_plans']);
         $this->assertCount(1, $metrics['dentist_activity']);
-        $this->assertSame($dentist->id, $metrics['dentist_activity']->first()->id);
-        $response->assertDontSeeText($otherPatient->first_name.' '.$otherPatient->last_name);
+        $this->assertSame($dentist->id, $metrics['dentist_activity'][0]['id']);
+        $this->assertStringNotContainsString($otherPatient->first_name.' '.$otherPatient->last_name, $response->getContent());
     }
 
     public function test_financial_dashboard_matches_report_and_excludes_cancelled_records(): void
@@ -256,7 +251,7 @@ class DentalDashboardTest extends TestCase
         ]);
 
         $filters = ['from' => '2026-10-12', 'to' => '2026-10-12'];
-        $metrics = $this->actingAs($administrator)->get(route('dashboard', $filters))->assertOk()->viewData('dashboardMetrics');
+        $metrics = $this->actingAs($administrator)->get(route('dashboard', $filters))->assertOk()->inertiaProps('dashboardMetrics');
         $report = $this->actingAs($administrator)->get(route('facturacion.reportes.index', $filters))->assertOk();
 
         $this->assertSame(2, $metrics['issued_invoice_count']);
@@ -264,7 +259,7 @@ class DentalDashboardTest extends TestCase
         $this->assertSame('30.00', $metrics['received_total']);
         $this->assertSame('70.00', $metrics['pending_balance']);
         $this->assertSame(1, $metrics['cancelled_invoice_count']);
-        $this->assertSame(3000, $metrics['revenue_by_day']->first()->amount_cents);
+        $this->assertSame(3000, $metrics['revenue_by_day'][0]['amount_cents']);
         $this->assertSame(14000, $report->viewData('issuedInvoiceCents'));
         $this->assertSame(3000, $report->viewData('receivedCents'));
         $this->assertSame(7000, $report->viewData('pendingCents'));
@@ -293,14 +288,13 @@ class DentalDashboardTest extends TestCase
         $deletedPatient->delete();
 
         $response = $this->actingAs($administrator)->get(route('dashboard', ['from' => '2026-09-01', 'to' => '2026-09-30']))->assertOk();
-        $metrics = $response->viewData('dashboardMetrics');
+        $metrics = $response->inertiaProps('dashboardMetrics');
 
         $this->assertSame(0, $metrics['active_patients']);
         $this->assertSame(0, $metrics['scheduled_appointments']);
         $this->assertSame(0, $metrics['treatments_completed']);
         $this->assertSame('0.00', $metrics['issued_total']);
-        $this->assertTrue($metrics['appointment_trend']->isEmpty());
-        $response->assertSeeText('No hay citas en este período.');
+        $this->assertSame([], $metrics['appointment_trend']);
     }
 
     private function userWithRole(string $roleName): User

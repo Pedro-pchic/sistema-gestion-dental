@@ -123,7 +123,7 @@
             @endcan
 
             @can('cancel', $appointment)
-                <form method="POST" action="{{ route('citas.cancel', $appointment) }}" onsubmit="return confirm('¿Cancelar esta cita?')" class="grid w-full gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <form method="POST" action="{{ route('citas.cancel', $appointment) }}" data-confirm="¿Cancelar esta cita?" class="grid w-full gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 sm:grid-cols-[1fr_auto] sm:items-end">
                     @csrf
                     <label for="reason" class="grid gap-1 text-sm font-semibold text-rose-950">
                         Motivo para cancelar

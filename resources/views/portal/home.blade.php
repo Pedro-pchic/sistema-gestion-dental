@@ -1,6 +1,6 @@
 @extends('layouts.store')
 
-@section('title', 'Sistema de Gestión Dental')
+@section('title', 'Inicio')
 @section('meta_description', 'Sistema de gestión para una clínica dental.')
 
 @section('content')
